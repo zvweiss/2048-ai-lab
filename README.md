@@ -1,1 +1,1 @@
-# 2048-angular
+# 2048-expectimax
