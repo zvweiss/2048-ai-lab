@@ -13,6 +13,7 @@
 - Repo seed scaffold
 - Node trainer dev server (stub) with REST + WebSocket progress stream
 - Angular UI creation script that generates an SPA and connects via proxy to WS/REST
+- Core engine covered by unit tests (Vitest)
 
 ## Next steps (high-level)
 1. Stabilize `packages/core` engine API and write move-correctness tests.

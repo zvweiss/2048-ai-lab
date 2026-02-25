@@ -7,7 +7,7 @@ Status: DONE
 Notes: Seed created with `apps/trainer`, `packages/core`, `/docs`, and Angular creation script.
 
 ### APP-002 Implement 2048 engine in packages/core + correctness tests
-Status: TODO
+Status: DONE
 Notes: Move/merge rules, spawn rules, terminal detection. Add unit tests.
 
 ### APP-003 Integrate core engine into trainer WS stream (replace fake board)
