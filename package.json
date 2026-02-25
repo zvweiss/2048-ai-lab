@@ -1,0 +1,18 @@
+{
+  "name": "2048-ai",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/trainer",
+    "packages/core"
+  ],
+  "scripts": {
+    "trainer:dev": "npm run core:build && npm --workspace apps/trainer run dev",
+    "trainer:build": "npm --workspace apps/trainer run build",
+    "trainer:train": "npm --workspace apps/trainer run train",
+    "core:build": "npm --workspace packages/core run build",
+    "ui:dev": "node scripts/run-ui-dev.mjs",
+    "ui:build": "node scripts/run-ui-build.mjs",
+    "format:check": "node scripts/format-check.mjs"
+  }
+}
