@@ -1,1 +1,1 @@
-# 2048-expectimax
+# 2048-ai-lab
