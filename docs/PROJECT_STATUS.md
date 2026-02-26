@@ -20,3 +20,4 @@
 2. Integrate real board frames into the WS stream (replace fake board).
 3. Add model artifact format + Angular loader (inference in browser from `/assets/models/v###/`).
 4. Add trainer CLI skeleton (local) that outputs artifacts to `artifacts/` and copies selected versions into the UI assets.
+5. rolling metrics + episodeEnd events

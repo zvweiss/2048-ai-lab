@@ -11,7 +11,7 @@ Status: DONE
 Notes: Move/merge rules, spawn rules, terminal detection. Add unit tests.
 
 ### APP-003 Integrate core engine into trainer WS stream (replace fake board)
-Status: TODO
+Status: DONE
 
 ### APP-004 Add Angular inference loader for published models in assets
 Status: TODO
