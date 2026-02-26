@@ -4,9 +4,17 @@ import { BehaviorSubject } from "rxjs";
 export type TrainProgressMsg = {
   type: "trainProgress";
   episode: number;
-  epsilon: number;
-  avgScore: number;
-  loss: number;
+  stepInEpisode: number;
+  score: number;
+  maxTile: number;
+
+  episodesCompleted: number;
+  avgScoreAll: number;
+  avgMaxTileAll: number;
+
+  avgScoreWindow: number;
+  avgMaxTileWindow: number;
+
   board: number[][];
 };
 
