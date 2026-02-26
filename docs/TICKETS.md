@@ -25,8 +25,9 @@ Status: TODO
 ## LAB Tickets (RL Lab / Experiments)
 
 ### LAB-001 Define evaluation suite + metrics schema
-Status: TODO
+Status: DONE
 Notes: mean/median score, max-tile histogram, P(16384), P(32768), P(65536).
+Eval CLI + artifact JSON schema + presets scripts + commands doc.
 
 ### LAB-002 Benchmark heuristic baseline agent
 Status: TODO

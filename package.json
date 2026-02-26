@@ -13,6 +13,9 @@
     "core:build": "npm --workspace packages/core run build",
     "ui:dev": "node scripts/run-ui-dev.mjs",
     "ui:build": "node scripts/run-ui-build.mjs",
-    "format:check": "node scripts/format-check.mjs"
+    "format:check": "node scripts/format-check.mjs",
+    "trainer:eval": "npm --workspace apps/trainer run eval",
+    "eval:500": "npm run trainer:eval -- --games 500",
+    "eval:1000": "npm run trainer:eval -- --games 1000"
   }
 }

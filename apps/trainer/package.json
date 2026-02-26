@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc -p tsconfig.json",
-    "train": "node dist/cli.js"
+    "train": "node dist/cli.js",
+    "eval": "tsx src/cli-eval.ts"
   },
   "dependencies": {
     "@zvi/ai-2048-core": "file:../../packages/core",
