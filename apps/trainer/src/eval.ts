@@ -1,15 +1,18 @@
-import { applyMove, computeGameOver, slideAndMerge } from "@zvi/ai-2048-core";
-import type { Direction, GameState, Rng } from "@zvi/ai-2048-core";
+import { applyMove, computeGameOver, newGame } from "@zvi/ai-2048-core";
+import type { GameState, Rng } from "@zvi/ai-2048-core";
+import type { Agent } from "./agents/agent.js";
 
 export type EvalConfig = {
   games: number;
   seedBase?: number; // base seed for determinism
+  agentConfig?: Record<string, unknown>;
 };
 
 export type EvalResult = {
-  agent: "random";
+  agent: string;
   games: number;
   seedBase: number;
+  agentConfig?: Record<string, unknown>;
 
   meanScore: number;
   medianScore: number;
@@ -19,7 +22,7 @@ export type EvalResult = {
   medianSteps: number;
 
   maxTileHistogram: Record<string, number>;
-  pAtLeast: Record<string, number>; // e.g. {"2048":0.12, "16384":0.001}
+  pAtLeast: Record<string, number>;
 
   samples: {
     minScore: number;
@@ -28,49 +31,49 @@ export type EvalResult = {
     maxMaxTile: number;
   };
 
-  scores: number[]; // useful for debugging; you can remove later if you want
+  scores: number[];
   maxTiles: number[];
   steps: number[];
 };
 
-export function evaluateRandomAgent(
+export function evaluateAgent(
   cfg: EvalConfig,
   mkRng: (seed: number) => Rng,
-  mkNewGame: (rng: Rng) => GameState,
-) : EvalResult {
+  agentFactory: (rng: Rng) => Agent,
+): EvalResult {
   const games = cfg.games;
   const seedBase = cfg.seedBase ?? 1337;
 
   const scores: number[] = [];
   const maxTiles: number[] = [];
   const stepsArr: number[] = [];
-
   const maxTileHistogram: Record<string, number> = {};
 
   for (let i = 0; i < games; i++) {
     const rng = mkRng((seedBase + i) >>> 0);
+    const agent = agentFactory(rng);
 
-    let state = mkNewGame(rng);
+    let state: GameState = newGame(rng);
     let steps = 0;
 
     while (!state.isGameOver) {
-      const dir = chooseRandomLegalMove(state, rng);
+      const { dir } = agent.chooseMove({ grid: state.grid, score: state.score });
+
       if (!dir) {
-        // No legal moves (should coincide with game over)
+        // No legal moves (or agent gives up) → confirm terminal
         state = { ...state, isGameOver: computeGameOver(state.grid) };
         break;
       }
 
       const res = applyMove(state, dir, rng);
-      // applyMove can return moved:false if something weird happens;
-      // but since we picked a legal move, moved should be true.
-      if (res.moved) {
-        state = res.next;
-        steps++;
-      } else {
-        // fallback: break to avoid infinite loop
+      if (!res.moved) {
+        // Agent produced illegal move -> terminate (bug signal)
         state = { ...state, isGameOver: true };
+        break;
       }
+
+      state = res.next;
+      steps++;
     }
 
     const score = state.score;
@@ -80,8 +83,7 @@ export function evaluateRandomAgent(
     maxTiles.push(mTile);
     stepsArr.push(steps);
 
-    const key = String(mTile);
-    maxTileHistogram[key] = (maxTileHistogram[key] ?? 0) + 1;
+    maxTileHistogram[String(mTile)] = (maxTileHistogram[String(mTile)] ?? 0) + 1;
   }
 
   scores.sort((a, b) => a - b);
@@ -101,47 +103,36 @@ export function evaluateRandomAgent(
     pAtLeast[String(t)] = scores.length ? countAtLeast(maxTiles, t) / scores.length : 0;
   }
 
+  // stable agent id
+  const agentId = agentFactory(mkRng(seedBase)).id;
+
   return {
-    agent: "random",
+    agent: agentId,
     games,
     seedBase,
+    agentConfig: cfg.agentConfig,
+
     meanScore,
     medianScore,
     stdScore,
+
     meanSteps,
     medianSteps,
+
     maxTileHistogram,
     pAtLeast,
+
     samples: {
       minScore: scores[0] ?? 0,
       maxScore: scores[scores.length - 1] ?? 0,
       minMaxTile: maxTiles[0] ?? 0,
       maxMaxTile: maxTiles[maxTiles.length - 1] ?? 0,
     },
+
     scores,
     maxTiles,
     steps: stepsArr,
   };
-}
-
-/**
- * Choose a legal move without consuming spawn RNG.
- * We “peek” legality using slideAndMerge (pure; no spawning).
- */
-function chooseRandomLegalMove(state: GameState, rng: Rng): Direction | null {
-  const dirs: Direction[] = ["up", "down", "left", "right"];
-
-  // Shuffle dirs deterministically using rng
-  for (let i = dirs.length - 1; i > 0; i--) {
-    const j = Math.floor(rng.next() * (i + 1));
-    [dirs[i], dirs[j]] = [dirs[j], dirs[i]];
-  }
-
-  for (const d of dirs) {
-    const peek = slideAndMerge(state.grid, d);
-    if (peek.moved) return d;
-  }
-  return null;
 }
 
 function maxTile(s: GameState): number {
@@ -175,7 +166,6 @@ function std(xs: number[], meanVal: number): number {
 }
 
 function countAtLeast(sortedMaxTiles: number[], t: number): number {
-  // sorted ascending; find first index >= t
   let lo = 0, hi = sortedMaxTiles.length;
   while (lo < hi) {
     const mid = (lo + hi) >> 1;
