@@ -14,8 +14,9 @@
     "ui:dev": "node scripts/run-ui-dev.mjs",
     "ui:build": "node scripts/run-ui-build.mjs",
     "format:check": "node scripts/format-check.mjs",
-    "trainer:eval": "npm --workspace apps/trainer run eval",
+    "trainer:eval": "npm --workspace apps/trainer run eval --",
     "eval:500": "npm run trainer:eval -- --games 500",
-    "eval:1000": "npm run trainer:eval -- --games 1000"
+    "eval:1000": "npm run trainer:eval -- --games 1000",
+    "eval:expectimax:v001": "npm run trainer:eval -- --agent expectimax --games 200 --seed 1337 --depth 2 --p2 0.9 --out docs/baselines/expectimax-v001.json"
   }
 }

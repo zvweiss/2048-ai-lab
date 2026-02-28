@@ -30,7 +30,7 @@ Notes: mean/median score, max-tile histogram, P(16384), P(32768), P(65536).
 Eval CLI + artifact JSON schema + presets scripts + commands doc.
 
 ### LAB-002 Benchmark heuristic baseline agent
-Status: TODO
+Status: DONE
 Notes: Establish baseline curves and distributions for comparison.
 
 ### LAB-003 ValueNet v001 training run (simple TD) + eval
