@@ -17,6 +17,7 @@
     "trainer:eval": "npm --workspace apps/trainer run eval --",
     "eval:500": "npm run trainer:eval -- --games 500",
     "eval:1000": "npm run trainer:eval -- --games 1000",
-    "eval:expectimax:v001": "npm run trainer:eval -- --agent expectimax --games 200 --seed 1337 --depth 2 --p2 0.9 --out docs/baselines/expectimax-v001.json"
+    "eval:expectimax:v001": "npm run trainer:eval -- --agent expectimax --games 200 --seed 1337 --depth 2 --p2 0.9 --out docs/baselines/expectimax-v001.json",
+    "eval:expectimax:d3:g50": "npm run trainer:eval -- --agent expectimax --games 50 --seed 1337 --depth 3 --p2 0.9 --out docs/baselines/expectimax-d3-g50.json"
   }
 }

@@ -10,7 +10,10 @@
 - Eval random agent (500 games): `npm run eval:500`
 - Eval random agent (1000 games): `npm run eval:1000`
 - Custom: `npm run trainer:eval -- --games 750 --seed 1337`
-- npm run eval:expectimax:v001 (Expectimax baseline v001, d2, 200 games)
+
+## Evaluation Presets
+- Expectimax Baseline v001 (depth=2, 200 games): `npm run eval:expectimax:v001`
+- Expectimax Depth 3 (50 games): `npm run eval:expectimax:d3:g50`
 
 ## Notes
 - Evaluation outputs are saved under `artifacts/eval/` (gitignored).

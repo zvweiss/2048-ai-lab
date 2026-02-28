@@ -7,13 +7,16 @@ import { createExpectimaxAgent } from "./agents/expectimax/expectimaxAgent.js";
 import type { Rng } from "@zvi/ai-2048-core";
 import type { Agent } from "./agents/agent.js";
 
+const repoRoot = path.resolve(process.cwd(), "..", "..");
+
 function parseArgs(argv: string[]) {
   const out: Record<string, string> = {};
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a.startsWith("--")) {
       const key = a.slice(2);
-      const val = argv[i + 1] && !argv[i + 1].startsWith("--") ? argv[++i] : "true";
+      const val =
+        argv[i + 1] && !argv[i + 1].startsWith("--") ? argv[++i] : "true";
       out[key] = val;
     }
   }
@@ -59,10 +62,7 @@ const agentFactory: (rng: Rng) => Agent =
     ? (_rng: Rng) => createExpectimaxAgent({ depth, p2 })
     : (rng: Rng) => createRandomAgent(rng);
 
-const agentConfig =
-  agent === "expectimax"
-    ? { depth, p2, p4: 1 - p2 }
-    : {};
+const agentConfig = agent === "expectimax" ? { depth, p2, p4: 1 - p2 } : {};
 
 const result = evaluateAgent(
   { games, seedBase, agentConfig },
@@ -74,11 +74,11 @@ const result = evaluateAgent(
 let outPath: string;
 
 if (outArg) {
-  outPath = path.isAbsolute(outArg) ? outArg : path.join(process.cwd(), outArg);
+  outPath = path.isAbsolute(outArg) ? outArg : path.join(repoRoot, outArg);
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
 } else {
   // default to artifacts
-  const artifactsDir = path.join(process.cwd(), "..", "..", "artifacts", "eval");
+  const artifactsDir = path.join(repoRoot, "artifacts", "eval");
   fs.mkdirSync(artifactsDir, { recursive: true });
 
   const ts = new Date().toISOString().replace(/[:.]/g, "-");
@@ -98,6 +98,8 @@ console.log(`Median score: ${result.medianScore.toFixed(1)}`);
 console.log(`Std score:    ${result.stdScore.toFixed(1)}`);
 console.log(`Mean steps:   ${result.meanSteps.toFixed(1)}`);
 console.log(`Median steps: ${result.medianSteps.toFixed(1)}`);
-console.log(`Max tile: min=${result.samples.minMaxTile} max=${result.samples.maxMaxTile}`);
+console.log(
+  `Max tile: min=${result.samples.minMaxTile} max=${result.samples.maxMaxTile}`,
+);
 console.log("P(tile >= T):", result.pAtLeast);
 console.log(`Saved: ${outPath}`);
