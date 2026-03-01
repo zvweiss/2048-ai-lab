@@ -135,81 +135,125 @@ LAB-002.1: Fix repo-root path resolution + add expectimax eval presets
 
 ### LAB-003 ValueNet v001 training run (simple TD) + eval
 Status: TODO
-Notes: Record config + results in EXPERIMENT_LOG.md.
-1) New agent
 
-Agent id: valuenet-v001
-Implements chooseMove({grid, score}) -> {dir, debug} using ValueNet + shallow expected-spawn lookahead.
+#### Architecture Decisions (Locked)
 
-2) Training CLI
+The following design decisions are frozen for LAB-003 v001.  
+Codex must implement exactly this architecture without deviation.
 
-A trainer script that runs self-play and TD updates:
-	•	Run episodes with ε-greedy (using current policy)
-	•	Store transitions (s, r, s', done)
-	•	TD target: y = r + gamma * V(s') (or r if terminal)
-	•	Optimize MSE between V(s) and y
+---
 
-3) Model artifacts
+##### 1. State Encoding
 
-Save model checkpoints:
-	•	artifacts/models/valuenet-v001/<run-id>/model.json + weights.bin
-	•	Save config.json and results.json alongside
+Input: 4x4 board.
 
-4) Eval integration
+Encoding rule:
 
-Extend cli-eval.ts:
-	•	--agent valuenet-v001 --model <path>
-	•	Evaluate using existing evaluateAgent(...)
-	•	Output JSON to docs/baselines/valuenet-v001.json (or artifacts)
+- For each tile value v:
+  - If v == 0 → encoded value = 0
+  - Else → encoded value = log2(v) / 16
 
-5) Experiment logging
+Shape:
 
-Append one entry to docs/EXPERIMENT_LOG.md with:
-	•	run id, date
-	•	config (episodes, lr, gamma, epsilon schedule, batch size, seed)
-	•	eval results (meanScore, pAtLeast, maxTile range)
-	•	model path
+- [4, 4, 1]
+- Flatten before dense layers
 
-⸻
+No multi-channel encoding in v001.
 
-Minimal file layout (what gets added)
+Rationale:
+- Normalized bounded input
+- Deterministic
+- Pedagogically clean
+- Easy to extend later
 
-Inside apps/trainer/src/:
-	•	agents/valuenet/
-	•	encode.ts (grid → tensor features)
-	•	valueNet.ts (tfjs model create/load/save, predictV)
-	•	valueNetAgent.ts (policy using 1-step lookahead + expected spawn)
-	•	tdTrain.ts (training loop)
-	•	cli-train-valuenet.ts (new CLI entrypoint)
-	•	Update:
-	•	cli-eval.ts (add agent option)
-	•	agents/agent.ts (extend AgentId union)
-	•	root package.json scripts (preset commands)
+---
 
-⸻
+##### 2. Reward Definition
 
-Commands we will end up with
-	•	Train:
-	•	npm run trainer:train:valuenet -- --episodes 20000 --seed 1337 --out artifacts/models/valuenet-v001/run-001
-	•	Eval:
-	•	npm run trainer:eval -- --agent valuenet-v001 --games 200 --seed 1337 --model artifacts/models/valuenet-v001/run-001/model.json --out docs/baselines/valuenet-v001.json
+Reward per step:
 
-(And we’ll add short preset scripts so you don’t remember flags.)
+r = scoreGained
 
-⸻
+No additional shaping.
 
-What Codex should implement vs what we decide here
+Specifically:
 
-We decide here (architecture):
-	•	TD target formula
-	•	state encoding (simple, deterministic)
-	•	epsilon schedule
-	•	eval protocol
+- No empty-cell bonus
+- No max-tile bonus
+- No monotonicity bonus
+- No survival reward
 
-Codex implements (bulk coding):
-	•	tfjs model code
-	•	encoding module
-	•	TD training loop
-	•	agent wiring into CLI
-	•	saving/loading artifacts
-	•	EXPERIMENT_LOG entry format
+Rationale:
+- Keeps TD update mathematically clean
+- Preserves comparability to random and expectimax baselines
+- Avoids hidden bias
+
+---
+
+##### 3. Training Algorithm
+
+Algorithm:
+
+- TD(0)
+- On-policy
+- Update every step
+- No replay buffer
+- No target network
+
+TD target:
+
+If terminal:
+  target = r
+Else:
+  target = r + gamma * V(s')
+
+Defaults:
+
+- gamma = 0.99
+- epsilon = 0.10
+- learning rate = 0.001
+
+Rationale:
+- Minimal complexity
+- Easy debugging
+- Clear learning signal
+- Suitable first neural milestone
+
+---
+
+##### 4. Acting Policy
+
+Training policy:
+
+- epsilon-greedy over:
+  scoreGained + ExpectedSpawn(V(s'))
+
+Evaluation policy:
+
+- Pure greedy (epsilon = 0)
+
+Expected spawn value must:
+
+- Enumerate all empty cells
+- Use probability 0.9 for tile 2
+- Use probability 0.1 for tile 4
+- Average uniformly over empty cell positions
+
+Rationale:
+- Consistent with existing expectimax spawn logic
+- Deterministic
+- Stronger than naive one-step greedy
+
+---
+
+##### 5. Determinism Requirements
+
+- Game dynamics must remain fully deterministic under fixed seed.
+- Evaluation of a saved model must be reproducible.
+- Training need not produce bit-identical weights, but trajectories must respect seeded RNG.
+
+---
+
+Any deviation from the above decisions requires explicit revision of this ticket before implementation.
+
+
