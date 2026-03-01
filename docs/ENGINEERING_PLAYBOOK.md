@@ -6,7 +6,7 @@ Intent: Research-Grade AI Engineering Discipline
 
 ---
 
-# 1. Philosophy
+## 1. Philosophy
 
 This repository is not a toy project.
 
@@ -23,9 +23,9 @@ The goal is to make it reproducible, comparable, and evolvable.
 
 ---
 
-# 2. Architectural Invariants (Non-Negotiable)
+## 2. Architectural Invariants (Non-Negotiable)
 
-## 2.1 Core Engine Purity
+### 2.1 Core Engine Purity
 
 Location:
 packages/core
@@ -44,7 +44,7 @@ The engine does not depend on agents.
 
 ---
 
-## 2.2 Trainer Responsibility
+### 2.2 Trainer Responsibility
 
 Location:
 apps/trainer
@@ -61,7 +61,7 @@ The trainer is the experimental harness.
 
 ---
 
-## 2.3 UI Responsibility
+### 2.3 UI Responsibility
 
 Location:
 apps/ui
@@ -74,7 +74,7 @@ UI consumes trainer outputs or sockets.
 
 ---
 
-# 3. Branching Strategy
+## 3. Branching Strategy
 
 master:
 - Always stable
@@ -91,7 +91,7 @@ No direct commits to master without merge.
 
 ---
 
-# 4. Agent Versioning Policy
+## 4. Agent Versioning Policy
 
 Every agent must follow semantic versioning by performance contract.
 
@@ -116,7 +116,7 @@ Baseline files are immutable once committed.
 
 ---
 
-# 5. Baseline Protocol
+## 5. Baseline Protocol
 
 Location:
 docs/baselines/
@@ -138,7 +138,7 @@ New performance → new version.
 
 ---
 
-# 6. Experiment Protocol
+## 6. Experiment Protocol
 
 Before Running:
 
@@ -163,7 +163,7 @@ After Run:
 
 ---
 
-# 7. CI Guardrails
+## 7. CI Guardrails
 
 CI protects statistical integrity.
 
@@ -188,7 +188,7 @@ If violated → CI fails.
 
 ---
 
-# 8. Promotion Lifecycle
+## 8. Promotion Lifecycle
 
 Prototype → Stable → Baseline → Guarded → Tagged
 
@@ -205,7 +205,7 @@ git push --tags
 
 ---
 
-# 9. Determinism Requirements
+## 9. Determinism Requirements
 
 All evaluation must be:
 
@@ -219,7 +219,7 @@ No Math.random in agents.
 
 ---
 
-# 10. Performance Ladder Strategy
+## 10. Performance Ladder Strategy
 
 This project evolves along a deliberate ladder:
 
@@ -236,7 +236,7 @@ No skipping conceptual layers.
 
 ---
 
-# 11. Experiment Logging Discipline
+## 11. Experiment Logging Discipline
 
 All non-trivial design decisions must be logged in:
 
@@ -254,7 +254,7 @@ This prevents institutional memory loss.
 
 ---
 
-# 12. Risk Mitigation
+## 12. Risk Mitigation
 
 Before large refactors:
 
@@ -267,7 +267,7 @@ No architectural rewrite without evaluation validation.
 
 ---
 
-# 13. Definition of "Research-Grade"
+## 13. Definition of "Research-Grade"
 
 The project is research-grade if:
 
@@ -279,7 +279,7 @@ The project is research-grade if:
 
 ---
 
-# 14. North Star
+## 14. North Star
 
 This repository is a laboratory.
 
@@ -296,3 +296,198 @@ With discipline.
 ---
 
 Last Updated: 2026-02-27
+
+# BRANCHING & RELEASE POLICY
+
+## Philosophy
+
+This repository is both:
+
+- A reproducible RL research lab
+- A software engineering project with deterministic baselines
+
+Therefore:
+
+- Stability and reproducibility are first-class requirements
+- Experimental work must not destabilize master
+- Baselines must remain reproducible over time
+
+---
+
+## Branch Types
+
+### master
+
+Purpose: Stable, reproducible, always runnable.
+
+Rules:
+
+- Must build and typecheck
+- Must pass verification script (if present)
+- Must run evaluation presets successfully
+- Must preserve deterministic behavior
+
+What belongs on master:
+
+- Stable engine code
+- Evaluation infrastructure
+- Baseline JSON files in docs/baselines/
+- Stable neural milestones
+- Documentation updates
+
+What must NOT be merged directly:
+
+- Experimental neural prototypes
+- Incomplete features
+- Nondeterministic changes
+- Large unverified refactors
+
+---
+
+### feature/*
+
+Purpose: Ticket-scoped development intended for merge into master.
+
+Naming examples:
+
+- feature/lab-003-valuenet-v001
+- feature/lab-004-policy-net-v001
+
+Rules:
+
+- One logical ticket per branch
+- Minimal scope creep
+- Commit messages must start with ticket id (e.g., LAB-003)
+- Must satisfy acceptance criteria before merge
+
+---
+
+### exp/*
+
+Purpose: Exploratory research branches.
+
+Naming examples:
+
+- exp/valuenet-encoding-8ch
+- exp/dqn-replay-buffer
+- exp/tdlambda
+
+Rules:
+
+- May break tests
+- May be nondeterministic
+- May be incomplete
+- Must never merge directly into master
+
+Promotion process:
+
+1. Create a new feature/* branch
+2. Extract minimal clean implementation
+3. Merge via normal feature workflow
+
+---
+
+## Starting a New Feature Branch
+
+git checkout master    
+git pull   
+git checkout -b feature/your-ticket-name<br>
+git push -u origin feature/your-ticket-name
+
+Example:  
+git checkout -b feature/lab-003-valuenet-v001
+
+---
+
+## Keeping a Feature Branch Updated
+
+git checkout feature/your-ticket-name<br>
+git fetch origin<br>
+git rebase origin/master
+
+---
+
+## Merge Procedure (feature → master)
+
+### Ensure master is up to date:
+
+git checkout master<br>
+git pull
+
+Merge using explicit merge commit:
+
+git merge --no-ff feature/your-ticket-name<br>
+git push
+
+---
+
+## Tagging Policy
+
+Tags mark reproducible milestones.
+
+After merging a stable LAB ticket:
+
+git tag lab-002.1<br>
+git push origin lab-002.1
+
+Neural milestones should be tagged:
+
+git tag lab-003-v001<br>
+git push origin lab-003-v001
+
+Tags allow full historical reproduction of:
+
+- Code
+- Baselines
+- Experiment log state
+
+---
+
+## Artifact Policy
+
+Tracked in git:
+
+- docs/baselines/*.json
+- docs/EXPERIMENT_LOG.md
+
+Not tracked:
+
+- artifacts/models/
+- artifacts/eval/
+- Large generated logs
+
+Artifacts remain reproducible but not versioned.
+
+---
+
+## Commit Message Convention
+
+Format:
+
+LAB-XXX: short description
+
+Examples:
+
+LAB-002.1: Fix repo-root eval output paths
+LAB-003: Add ValueNet v001 TD training
+EXP: Try multi-channel encoding
+
+---
+
+## Determinism Requirement
+
+Any code merged into master must:
+
+- Respect seeded RNG behavior
+- Produce reproducible evaluation results
+- Avoid hidden randomness
+
+Determinism is required for all baselines.
+
+Any code merged into master must:
+
+- Respect seeded RNG behavior
+- Produce reproducible evaluation results
+- Avoid hidden randomness
+
+Determinism is required for all baselines.
