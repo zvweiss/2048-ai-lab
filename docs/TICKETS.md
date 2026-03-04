@@ -137,14 +137,12 @@ LAB-002.1: Fix repo-root path resolution + add expectimax eval presets
 Status: TODO
 
 #### Architecture Decisions (Locked)
-
-The following design decisions are frozen for LAB-003 v001.  
-Codex must implement exactly this architecture without deviation.
+	The following design decisions are frozen for LAB-003 v001.  
+	Codex must implement exactly this architecture without deviation.
 
 ---
 
 ##### 1. State Encoding
-
 Input: 4x4 board.
 
 Encoding rule:

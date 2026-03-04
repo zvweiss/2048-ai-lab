@@ -1,6 +1,6 @@
 import type { Direction, Grid } from "@zvi/ai-2048-core"; // adjust to your actual package name/path
 
-export type AgentId = "random" | "expectimax";
+export type AgentId = "random" | "expectimax" | "valuenet-v001";
 
 export interface ChooseMoveInput {
   grid: Grid;

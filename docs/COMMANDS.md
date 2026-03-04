@@ -7,13 +7,19 @@
 - Run Angular UI: `npm run ui:dev`
 
 ## Evaluation (LAB-001)
-- Eval random agent (500 games): `npm run eval:500`
-- Eval random agent (1000 games): `npm run eval:1000`
+- Eval random agent (500 games): `npm run eval:random:500`
+- Eval random agent (1000 games): `npm run eval:random:1000`
 - Custom: `npm run trainer:eval -- --games 750 --seed 1337`
 
 ## Evaluation Presets
+- Presets are root-level scripts in the repo `package.json`.
 - Expectimax Baseline v001 (depth=2, 200 games): `npm run eval:expectimax:v001`
 - Expectimax Depth 3 (50 games): `npm run eval:expectimax:d3:g50`
+
+## ValueNet Smoke
+- Train smoke model (creates `artifacts/models/valuenet-v001/run-smoke/model.json`): `npm run train:valuenet:smoke`
+- Eval smoke model: `npm run eval:valuenet:smoke`
+- Run both in sequence: `npm run smoke:valuenet`
 
 ## Notes
 - Evaluation outputs are saved under `artifacts/eval/` (gitignored).

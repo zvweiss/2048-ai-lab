@@ -7,17 +7,29 @@
     "packages/core"
   ],
   "scripts": {
+    "core:build": "npm --workspace packages/core run build",
+
     "trainer:dev": "npm run core:build && npm --workspace apps/trainer run dev",
     "trainer:build": "npm --workspace apps/trainer run build",
-    "trainer:train": "npm --workspace apps/trainer run train",
-    "core:build": "npm --workspace packages/core run build",
+
+    "trainer:train": "npm --workspace apps/trainer run train --",
+    "trainer:train:valuenet": "npm --workspace apps/trainer run train:valuenet --",
+
+    "trainer:eval": "npm --workspace apps/trainer run eval --",
+
     "ui:dev": "node scripts/run-ui-dev.mjs",
     "ui:build": "node scripts/run-ui-build.mjs",
+
     "format:check": "node scripts/format-check.mjs",
-    "trainer:eval": "npm --workspace apps/trainer run eval --",
-    "eval:500": "npm run trainer:eval -- --games 500",
-    "eval:1000": "npm run trainer:eval -- --games 1000",
-    "eval:expectimax:v001": "npm run trainer:eval -- --agent expectimax --games 200 --seed 1337 --depth 2 --p2 0.9 --out docs/baselines/expectimax-v001.json",
-    "eval:expectimax:d3:g50": "npm run trainer:eval -- --agent expectimax --games 50 --seed 1337 --depth 3 --p2 0.9 --out docs/baselines/expectimax-d3-g50.json"
+
+    "eval:random:500": "npm run trainer:eval --agent random --games 500",
+    "eval:random:1000": "npm run trainer:eval --agent random --games 1000",
+
+    "eval:expectimax:v001": "npm run trainer:eval --agent expectimax --games 200 --seed 1337 --depth 2 --p2 0.9 --out docs/baselines/expectimax-v001.json",
+    "eval:expectimax:d3:g50": "npm run trainer:eval --agent expectimax --games 50 --seed 1337 --depth 3 --p2 0.9 --out docs/baselines/expectimax-d3-g50.json",
+
+    "train:valuenet:smoke": "npm run trainer:train:valuenet --episodes 1 --seed 1337 --out artifacts/models/valuenet-v001/run-smoke",
+    "eval:valuenet:smoke": "npm run trainer:eval --agent valuenet-v001 --games 10 --seed 1337 --model artifacts/models/valuenet-v001/run-smoke/model.json --out artifacts/eval/valuenet-smoke.json",
+    "smoke:valuenet": "npm run train:valuenet:smoke && npm run eval:valuenet:smoke"
   }
 }

@@ -4,6 +4,8 @@ import { Mulberry32 } from "./rng.js";
 import { evaluateAgent } from "./eval.js";
 import { createRandomAgent } from "./agents/random.js";
 import { createExpectimaxAgent } from "./agents/expectimax/expectimaxAgent.js";
+import { createValueNetAgent } from "./agents/valuenet/valueNetAgent.js";
+import { loadValueNet } from "./agents/valuenet/valueNet.js";
 import type { Rng } from "@zvi/ai-2048-core";
 import type { Agent } from "./agents/agent.js";
 
@@ -23,83 +25,133 @@ function parseArgs(argv: string[]) {
   return out;
 }
 
-const args = parseArgs(process.argv.slice(2));
+async function main() {
+  const args = parseArgs(process.argv.slice(2));
 
-const agent = String(args.agent ?? "random"); // random | expectimax
-const games = Number(args.games ?? "500");
-const seedBase = Number(args.seed ?? "1337");
-const outArg = args.out ? String(args.out) : null;
+  const agent = String(args.agent ?? "random"); // random | expectimax | valuenet-v001
+  const games = Number(args.games ?? "500");
+  const seedBase = Number(args.seed ?? "1337");
+  const outArg = args.out ? String(args.out) : null;
+  const modelArg = args.model ? String(args.model) : null;
 
-// expectimax params
-const depth = Number(args.depth ?? "3");
-const p2 = Number(args.p2 ?? "0.9");
+  // expectimax params
+  const depth = Number(args.depth ?? "3");
+  const p2 = Number(args.p2 ?? "0.9");
 
-if (!Number.isFinite(games) || games <= 0) {
-  console.error("Invalid --games. Example: --games 500");
+  if (!Number.isFinite(games) || games <= 0) {
+    console.error("Invalid --games. Example: --games 500");
+    process.exit(1);
+  }
+  if (!Number.isFinite(seedBase)) {
+    console.error("Invalid --seed. Example: --seed 1337");
+    process.exit(1);
+  }
+  if (
+    agent !== "random" &&
+    agent !== "expectimax" &&
+    agent !== "valuenet-v001"
+  ) {
+    console.error(
+      "Invalid --agent. Use --agent random | expectimax | valuenet-v001",
+    );
+    process.exit(1);
+  }
+  if (agent === "expectimax" && (!Number.isFinite(depth) || depth <= 0)) {
+    console.error("Invalid --depth. Example: --depth 3");
+    process.exit(1);
+  }
+  if (agent === "expectimax" && !(p2 > 0 && p2 < 1)) {
+    console.error("Invalid --p2. Example: --p2 0.9");
+    process.exit(1);
+  }
+  if (agent === "valuenet-v001" && !modelArg) {
+    console.error(
+      "Missing --model for valuenet-v001. Example: --model artifacts/models/valuenet-v001/run-001/model.json",
+    );
+    process.exit(1);
+  }
+
+  const mkRng = (seed: number): Rng => new Mulberry32(seed);
+  const modelPath =
+    agent === "valuenet-v001"
+      ? path.isAbsolute(modelArg as string)
+        ? (modelArg as string)
+        : path.join(repoRoot, modelArg as string)
+      : null;
+
+  if (agent === "valuenet-v001" && !fs.existsSync(modelPath as string)) {
+    console.error(`Model file not found: ${modelPath}`);
+    console.error(
+      "Train first, e.g.: npm run trainer:train:valuenet -- --episodes 100 --seed 1337 --out artifacts/models/valuenet-v001/run-smoke",
+    );
+    process.exit(1);
+  }
+
+  const loadedValueNet =
+    agent === "valuenet-v001"
+      ? await loadValueNet(modelPath as string)
+      : null;
+
+  const agentFactory: (rng: Rng) => Agent =
+    agent === "expectimax"
+      ? (_rng: Rng) => createExpectimaxAgent({ depth, p2 })
+      : agent === "valuenet-v001"
+        ? (_rng: Rng) =>
+            createValueNetAgent({
+              model: loadedValueNet as NonNullable<typeof loadedValueNet>,
+              epsilon: 0,
+              p2: 0.9,
+            })
+        : (rng: Rng) => createRandomAgent(rng);
+
+  const agentConfig =
+    agent === "expectimax"
+      ? { depth, p2, p4: 1 - p2 }
+      : agent === "valuenet-v001"
+        ? { model: modelArg }
+        : {};
+
+  const result = evaluateAgent({ games, seedBase, agentConfig }, mkRng, agentFactory);
+
+  // Determine output path
+  let outPath: string;
+
+  if (outArg) {
+    outPath = path.isAbsolute(outArg) ? outArg : path.join(repoRoot, outArg);
+    fs.mkdirSync(path.dirname(outPath), { recursive: true });
+  } else {
+    // default to artifacts
+    const artifactsDir = path.join(repoRoot, "artifacts", "eval");
+    fs.mkdirSync(artifactsDir, { recursive: true });
+
+    const ts = new Date().toISOString().replace(/[:.]/g, "-");
+    const filename = `${agent}-g${games}-seed${seedBase}-${ts}.json`;
+    outPath = path.join(artifactsDir, filename);
+  }
+
+  fs.writeFileSync(outPath, JSON.stringify(result, null, 2), "utf-8");
+
+  // Print summary
+  console.log(`=== EVAL SUMMARY (${result.agent}) ===`);
+  console.log(`Games: ${games}`);
+  console.log(`Seed base: ${seedBase}`);
+  if (agent === "expectimax") console.log(`Config: depth=${depth} p2=${p2}`);
+  if (agent === "valuenet-v001") console.log(`Model: ${modelArg}`);
+  console.log(`Mean score:   ${result.meanScore.toFixed(1)}`);
+  console.log(`Median score: ${result.medianScore.toFixed(1)}`);
+  console.log(`Std score:    ${result.stdScore.toFixed(1)}`);
+  console.log(`Mean steps:   ${result.meanSteps.toFixed(1)}`);
+  console.log(`Median steps: ${result.medianSteps.toFixed(1)}`);
+  console.log(
+    `Max tile: min=${result.samples.minMaxTile} max=${result.samples.maxMaxTile}`,
+  );
+  console.log("P(tile >= T):", result.pAtLeast);
+  console.log(`Saved: ${outPath}`);
+
+  loadedValueNet?.dispose();
+}
+
+main().catch((err) => {
+  console.error(err);
   process.exit(1);
-}
-if (!Number.isFinite(seedBase)) {
-  console.error("Invalid --seed. Example: --seed 1337");
-  process.exit(1);
-}
-if (agent !== "random" && agent !== "expectimax") {
-  console.error("Invalid --agent. Use --agent random | expectimax");
-  process.exit(1);
-}
-if (agent === "expectimax" && (!Number.isFinite(depth) || depth <= 0)) {
-  console.error("Invalid --depth. Example: --depth 3");
-  process.exit(1);
-}
-if (agent === "expectimax" && !(p2 > 0 && p2 < 1)) {
-  console.error("Invalid --p2. Example: --p2 0.9");
-  process.exit(1);
-}
-
-const mkRng = (seed: number): Rng => new Mulberry32(seed);
-
-const agentFactory: (rng: Rng) => Agent =
-  agent === "expectimax"
-    ? (_rng: Rng) => createExpectimaxAgent({ depth, p2 })
-    : (rng: Rng) => createRandomAgent(rng);
-
-const agentConfig = agent === "expectimax" ? { depth, p2, p4: 1 - p2 } : {};
-
-const result = evaluateAgent(
-  { games, seedBase, agentConfig },
-  mkRng,
-  agentFactory,
-);
-
-// Determine output path
-let outPath: string;
-
-if (outArg) {
-  outPath = path.isAbsolute(outArg) ? outArg : path.join(repoRoot, outArg);
-  fs.mkdirSync(path.dirname(outPath), { recursive: true });
-} else {
-  // default to artifacts
-  const artifactsDir = path.join(repoRoot, "artifacts", "eval");
-  fs.mkdirSync(artifactsDir, { recursive: true });
-
-  const ts = new Date().toISOString().replace(/[:.]/g, "-");
-  const filename = `${agent}-g${games}-seed${seedBase}-${ts}.json`;
-  outPath = path.join(artifactsDir, filename);
-}
-
-fs.writeFileSync(outPath, JSON.stringify(result, null, 2), "utf-8");
-
-// Print summary
-console.log(`=== EVAL SUMMARY (${result.agent}) ===`);
-console.log(`Games: ${games}`);
-console.log(`Seed base: ${seedBase}`);
-if (agent === "expectimax") console.log(`Config: depth=${depth} p2=${p2}`);
-console.log(`Mean score:   ${result.meanScore.toFixed(1)}`);
-console.log(`Median score: ${result.medianScore.toFixed(1)}`);
-console.log(`Std score:    ${result.stdScore.toFixed(1)}`);
-console.log(`Mean steps:   ${result.meanSteps.toFixed(1)}`);
-console.log(`Median steps: ${result.medianSteps.toFixed(1)}`);
-console.log(
-  `Max tile: min=${result.samples.minMaxTile} max=${result.samples.maxMaxTile}`,
-);
-console.log("P(tile >= T):", result.pAtLeast);
-console.log(`Saved: ${outPath}`);
+});
