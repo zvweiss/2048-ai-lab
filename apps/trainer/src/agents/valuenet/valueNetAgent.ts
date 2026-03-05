@@ -2,7 +2,7 @@ import { cloneGrid, slideAndMerge } from "@zvi/ai-2048-core";
 import type { Direction, Grid, Rng } from "@zvi/ai-2048-core";
 import type { Agent, ChooseMoveInput, ChooseMoveOutput } from "../agent.js";
 import type { ValueNetModel } from "./valueNet.js";
-import { predictV } from "./valueNet.js";
+import { predictBatch, predictV } from "./valueNet.js";
 
 const DIRS: Direction[] = ["up", "left", "right", "down"];
 
@@ -56,12 +56,20 @@ function expectedSpawnValue(model: ValueNetModel, grid: Grid, p2: number): numbe
 
   const p4 = 1 - p2;
   const invN = 1 / empties.length;
-  let acc = 0;
+  const spawned: Grid[] = [];
 
   for (const { r, c } of empties) {
-    const g2 = placeTile(grid, r, c, 2);
-    const g4 = placeTile(grid, r, c, 4);
-    acc += invN * (p2 * predictV(model, g2) + p4 * predictV(model, g4));
+    spawned.push(placeTile(grid, r, c, 2));
+    spawned.push(placeTile(grid, r, c, 4));
+  }
+
+  const vals = predictBatch(model, spawned);
+
+  let acc = 0;
+  for (let i = 0; i < vals.length; i += 2) {
+    const v2 = vals[i];
+    const v4 = vals[i + 1];
+    acc += invN * (p2 * v2 + p4 * v4);
   }
 
   return acc;
@@ -82,4 +90,3 @@ function placeTile(grid: Grid, r: number, c: number, v: number): Grid {
   g[r][c] = v;
   return g;
 }
-

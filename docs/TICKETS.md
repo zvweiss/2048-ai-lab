@@ -347,3 +347,113 @@ Expected:
 Commit Message:
 
 LAB-003.1: Add reproducible experiment runner for ValueNet training/evaluation
+
+### LAB-003.2 — Batch ValueNet inference + tensor memory hygiene
+
+Status: TODO
+
+Objective:
+Speed up ValueNet training by batching neural network inference calls used
+during ExpectedSpawn(V(s')) evaluation.
+
+Currently the agent evaluates each spawned state individually.
+This results in many small model.predict() calls per move.
+
+Instead we will:
+- construct all spawned states
+- evaluate them in a single batch inference
+- compute expectations from the batch outputs
+
+This change must NOT alter the algorithm or policy behavior.
+
+Constraints:
+- Do NOT change state encoding.
+- Do NOT change reward definition.
+- Do NOT change TD(0) update rule.
+- Do NOT change epsilon policy.
+- Do NOT change expected spawn probabilities.
+- Do NOT introduce new dependencies.
+- Must produce numerically equivalent results within floating tolerance.
+- Ensure TensorFlow tensors are properly disposed (no memory leaks).
+
+Files Allowed to Modify:
+
+apps/trainer/src/agents/valuenet/valueNet.ts  
+apps/trainer/src/agents/valuenet/valueNetAgent.ts  
+apps/trainer/src/agents/valuenet/tdTrain.ts (only if required)
+
+Required Implementation:
+
+1) Implement batched inference helper
+
+Add a function in valueNet.ts:
+
+predictBatch(grids: Grid[]): number[]
+
+Behavior:
+- Encode each grid using the existing encoding.
+- Create a single tensor batch.
+- Run model.predict(batch).
+- Return an array of scalar values (one per grid).
+- Dispose intermediate tensors (use tf.tidy or manual disposal).
+
+2) Refactor ExpectedSpawn evaluation
+
+Replace sequential calls of:
+
+V(grid_1)
+V(grid_2)
+...
+
+with:
+
+predictBatch([grid_1, grid_2, ...])
+
+Then compute expectation using:
+
+E[V(s')] =
+Σ_empty_cells (1 / N_empty) *
+  (p2 * V(grid_with_2) + p4 * V(grid_with_4))
+
+3) Ensure tensor lifecycle safety
+
+All tensors created inside training loops must be disposed.
+
+Use either:
+- tf.tidy blocks
+or
+- manual tensor.dispose()
+
+4) Maintain identical behavior
+
+The following must remain unchanged:
+
+- state encoding
+- epsilon-greedy logic
+- TD update formula
+- spawn probability (0.9 / 0.1)
+- deterministic RNG usage
+
+Verification:
+
+Run:
+
+npm --workspace apps/trainer run train:valuenet -- --episodes 50 --seed 1337
+
+Expected:
+
+- Training completes faster than before.
+- No runtime errors.
+- No NaN values in training output.
+- Model artifacts still written to artifacts/models/.
+
+Optional performance test:
+
+time npm --workspace apps/trainer run train:valuenet -- --episodes 200 --seed 1337
+
+Expected:
+Runtime noticeably shorter than previous implementation.
+
+Commit Message:
+
+LAB-003.2: Batch ValueNet inference for ExpectedSpawn + tensor memory hygiene
