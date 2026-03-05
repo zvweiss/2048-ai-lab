@@ -105,7 +105,7 @@ async function main() {
   );
 
   const timestamp = new Date().toISOString();
-  const logLine = `${timestamp} | valuenet-v001 | ${runId} | ${episodes} | ${games} | ${seed} | ${modelRelPath} | ${evalRelPath}\n`;
+  const logLine = `${timestamp} | valuenet-v001 | ${runId} | episodes=${episodes} | games=${games} | seed=${seed} | ${modelRelPath} | ${evalRelPath}\n`;
   appendFileSync(join(repoRoot, "docs", "EXPERIMENT_LOG.md"), logLine, "utf-8");
 
   console.log("Experiment completed.");
@@ -118,4 +118,3 @@ main().catch((err) => {
   console.error(err);
   process.exit(1);
 });
-
