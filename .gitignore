@@ -24,3 +24,6 @@ artifacts/
 # Env
 .env
 .env.*
+
+# editor backups
+*~
