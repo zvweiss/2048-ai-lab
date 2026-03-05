@@ -17,3 +17,4 @@ Record LAB runs here. Keep entries short and reproducible.
 - Decided to implement Expectimax inside apps/trainer first.
 - Chose depth=3 initial target.
 - Heuristic v001: empties + smoothness + monotonicity + maxTile.
+2026-03-05T19:02:32.986Z | valuenet-v001 | smoke | 5 | 5 | 1337 | artifacts/models/valuenet-v001/smoke/model.json | docs/baselines/valuenet-v001-smoke.json

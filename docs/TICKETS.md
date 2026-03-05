@@ -254,4 +254,96 @@ Rationale:
 
 Any deviation from the above decisions requires explicit revision of this ticket before implementation.
 
+### LAB-003.1 — Experiment Runner (Train → Eval → Log Pipeline)
+Status: TODO
 
+Create a reproducible experiment runner that performs:
+
+1. Train ValueNet model
+2. Evaluate the trained model
+3. Save evaluation results
+4. Append experiment metadata to docs/EXPERIMENT_LOG.md
+
+The experiment must be runnable with a single command.
+
+Example:
+
+npm run exp:valuenet:v001 -- --run run-001 --episodes 20000 --games 500 --seed 1337
+
+Constraints:
+
+- Do NOT modify the training algorithm.
+- Do NOT modify evaluation math.
+- Only orchestrate existing CLI tools.
+- Use Node.js script under scripts/.
+- Preserve deterministic seeds.
+- Output paths must resolve from repo root.
+
+Files Allowed to Modify:
+
+scripts/run-experiment-valuenet-v001.mjs (NEW)
+package.json (repo root)
+docs/EXPERIMENT_LOG.md (append entries)
+
+Required Implementation:
+
+1. Create script:
+
+scripts/run-experiment-valuenet-v001.mjs
+
+The script must:
+
+- Parse arguments:
+  --run
+  --episodes
+  --games
+  --seed
+
+- Run training via:
+
+npm run trainer:train:valuenet
+
+- Run evaluation via:
+
+npm run trainer:eval
+
+- Store outputs in:
+
+artifacts/models/valuenet-v001/<run-id>/
+docs/baselines/valuenet-v001-<run-id>.json
+
+- Append entry to:
+
+docs/EXPERIMENT_LOG.md
+
+Format:
+
+timestamp | agent | run-id | episodes | games | seed | model-path | eval-path
+
+2. Update root package.json scripts
+
+Add:
+
+"exp:valuenet:v001": "node scripts/run-experiment-valuenet-v001.mjs"
+
+Optional preset:
+
+"exp:valuenet:v001:run-001":
+"node scripts/run-experiment-valuenet-v001.mjs --run run-001 --episodes 20000 --games 500 --seed 1337"
+
+Verification:
+
+Run:
+
+npm run exp:valuenet:v001 -- --run run-test --episodes 5 --games 5 --seed 1337
+
+Expected:
+
+1. Training executes
+2. Model saved under artifacts/models/valuenet-v001/run-test/
+3. Evaluation JSON written to docs/baselines/
+4. EXPERIMENT_LOG.md receives a new entry
+
+Commit Message:
+
+LAB-003.1: Add reproducible experiment runner for ValueNet training/evaluation

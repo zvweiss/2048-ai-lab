@@ -30,6 +30,9 @@
 
     "train:valuenet:smoke": "npm run trainer:train:valuenet --episodes 1 --seed 1337 --out artifacts/models/valuenet-v001/run-smoke",
     "eval:valuenet:smoke": "npm run trainer:eval --agent valuenet-v001 --games 10 --seed 1337 --model artifacts/models/valuenet-v001/run-smoke/model.json --out artifacts/eval/valuenet-smoke.json",
-    "smoke:valuenet": "npm run train:valuenet:smoke && npm run eval:valuenet:smoke"
+    "smoke:valuenet": "npm run train:valuenet:smoke && npm run eval:valuenet:smoke",
+
+    "exp:valuenet:v001": "node scripts/run-experiment-valuenet-v001.mjs",
+    "exp:valuenet:v001:run-001": "node scripts/run-experiment-valuenet-v001.mjs --run run-001 --episodes 20000 --games 500 --seed 1337"
   }
 }

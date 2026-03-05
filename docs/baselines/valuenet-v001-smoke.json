@@ -1,0 +1,52 @@
+{
+  "agent": "valuenet-v001",
+  "games": 5,
+  "seedBase": 1337,
+  "agentConfig": {
+    "model": "artifacts/models/valuenet-v001/smoke/model.json"
+  },
+  "meanScore": 2457.6,
+  "medianScore": 1772,
+  "stdScore": 1252.225538790836,
+  "meanSteps": 222,
+  "medianSteps": 183,
+  "maxTileHistogram": {
+    "128": 3,
+    "256": 2
+  },
+  "pAtLeast": {
+    "2048": 0,
+    "4096": 0,
+    "8192": 0,
+    "16384": 0,
+    "32768": 0,
+    "65536": 0
+  },
+  "samples": {
+    "minScore": 1308,
+    "maxScore": 4104,
+    "minMaxTile": 128,
+    "maxMaxTile": 256
+  },
+  "scores": [
+    1308,
+    1616,
+    1772,
+    3488,
+    4104
+  ],
+  "maxTiles": [
+    128,
+    128,
+    128,
+    256,
+    256
+  ],
+  "steps": [
+    134,
+    172,
+    183,
+    291,
+    330
+  ]
+}
