@@ -134,7 +134,7 @@ LAB-002.1: Fix repo-root path resolution + add expectimax eval presets
 
 
 ### LAB-003 ValueNet v001 training run (simple TD) + eval
-Status: TODO
+Status: DONE
 
 #### Architecture Decisions (Locked)
 	The following design decisions are frozen for LAB-003 v001.  
@@ -255,7 +255,7 @@ Rationale:
 Any deviation from the above decisions requires explicit revision of this ticket before implementation.
 
 ### LAB-003.1 — Experiment Runner (Train → Eval → Log Pipeline)
-Status: TODO
+Status: DONE
 
 Create a reproducible experiment runner that performs:
 
@@ -350,7 +350,7 @@ LAB-003.1: Add reproducible experiment runner for ValueNet training/evaluation
 
 ### LAB-003.2 — Batch ValueNet inference + tensor memory hygiene
 
-Status: TODO
+Status: DONE
 
 Objective:
 Speed up ValueNet training by batching neural network inference calls used
