@@ -41,7 +41,8 @@ export async function trainValueNetTd(
   const epsilon = cfg.epsilon ?? 0.1;
   const learningRate = cfg.learningRate ?? 0.001;
   const p2 = cfg.p2 ?? 0.9;
-  const logEvery = cfg.logEvery ?? 1000;
+  //const logEvery = cfg.logEvery ?? 1000;
+  const logEvery = 100;
 
   const rng = new Mulberry32(seed);
   const model = createValueNet({ learningRate });

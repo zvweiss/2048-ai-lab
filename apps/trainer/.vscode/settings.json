@@ -1,0 +1,26 @@
+{
+    "cSpell.words": [
+        "tfjs"
+    ],
+    "npm.packageManager": "npm",
+    "workbench.colorCustomizations": {
+        "activityBar.activeBackground": "#a3c0fa",
+        "activityBar.background": "#a3c0fa",
+        "activityBar.foreground": "#15202b",
+        "activityBar.inactiveForeground": "#15202b99",
+        "activityBarBadge.background": "#f32b6e",
+        "activityBarBadge.foreground": "#e7e7e7",
+        "commandCenter.border": "#15202b99",
+        "sash.hoverBorder": "#a3c0fa",
+        "statusBar.background": "#729ff8",
+        "statusBar.foreground": "#15202b",
+        "statusBarItem.hoverBackground": "#417ef6",
+        "statusBarItem.remoteBackground": "#729ff8",
+        "statusBarItem.remoteForeground": "#15202b",
+        "titleBar.activeBackground": "#729ff8",
+        "titleBar.activeForeground": "#15202b",
+        "titleBar.inactiveBackground": "#729ff899",
+        "titleBar.inactiveForeground": "#15202b99"
+    },
+    "peacock.color": "#729ff8"
+}

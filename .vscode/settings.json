@@ -1,4 +1,5 @@
 {
+    "npm.packageManager": "npm",
     "workbench.colorCustomizations": {
         "activityBar.activeBackground": "#3872e3",
         "activityBar.background": "#3872e3",
