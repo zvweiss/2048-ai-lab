@@ -19,5 +19,7 @@
         "titleBar.inactiveBackground": "#1d58cb99",
         "titleBar.inactiveForeground": "#e7e7e799"
     },
-    "peacock.color": "#1d58cb"
+    "peacock.color": "#1d58cb",
+    "files.insertFinalNewline": true,
+    "editor.formatOnPaste": true
 }

@@ -50,6 +50,7 @@ export function evaluateAgent(
   const maxTileHistogram: Record<string, number> = {};
 
   for (let i = 0; i < games; i++) {
+    console.log("tick: " + i);
     const rng = mkRng((seedBase + i) >>> 0);
     const agent = agentFactory(rng);
 
@@ -57,7 +58,11 @@ export function evaluateAgent(
     let steps = 0;
 
     while (!state.isGameOver) {
-      const { dir } = agent.chooseMove({ grid: state.grid, score: state.score });
+      console.log("agent tick: " + steps); //ZW
+      const { dir } = agent.chooseMove({
+        grid: state.grid,
+        score: state.score,
+      });
 
       if (!dir) {
         // No legal moves (or agent gives up) → confirm terminal
@@ -83,7 +88,13 @@ export function evaluateAgent(
     maxTiles.push(mTile);
     stepsArr.push(steps);
 
-    maxTileHistogram[String(mTile)] = (maxTileHistogram[String(mTile)] ?? 0) + 1;
+    maxTileHistogram[String(mTile)] =
+      (maxTileHistogram[String(mTile)] ?? 0) + 1;
+
+    //life tick
+    if ((i + 1) % 2 === 0 || i === games - 1) {
+      console.log(`[cli-eval] progress ${i + 1}/${games}`);
+    }
   }
 
   scores.sort((a, b) => a - b);
@@ -100,7 +111,9 @@ export function evaluateAgent(
   const thresholds = [2048, 4096, 8192, 16384, 32768, 65536];
   const pAtLeast: Record<string, number> = {};
   for (const t of thresholds) {
-    pAtLeast[String(t)] = scores.length ? countAtLeast(maxTiles, t) / scores.length : 0;
+    pAtLeast[String(t)] = scores.length
+      ? countAtLeast(maxTiles, t) / scores.length
+      : 0;
   }
 
   // stable agent id
@@ -166,7 +179,8 @@ function std(xs: number[], meanVal: number): number {
 }
 
 function countAtLeast(sortedMaxTiles: number[], t: number): number {
-  let lo = 0, hi = sortedMaxTiles.length;
+  let lo = 0,
+    hi = sortedMaxTiles.length;
   while (lo < hi) {
     const mid = (lo + hi) >> 1;
     if (sortedMaxTiles[mid] >= t) hi = mid;

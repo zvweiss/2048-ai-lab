@@ -10,14 +10,6 @@
       "name": "Launch Chrome against localhost",
       "url": "http://localhost:4200",
       "webRoot": "${workspaceFolder}"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Debug Trainer",
-      "program": "${workspaceFolder}/apps/trainer/src/cli-train-valuenet.ts",
-      "console": "integratedTerminal",
-      "skipFiles": ["<node_internals>/**"]
     }
   ]
 }
