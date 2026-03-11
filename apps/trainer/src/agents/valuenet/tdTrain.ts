@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { applyMove, newGame } from "@zvi/ai-2048-core";
 import type { Direction, GameState } from "@zvi/ai-2048-core";
 import { Mulberry32 } from "../../rng.js";
@@ -12,6 +14,7 @@ export type TdTrainConfig = {
   learningRate?: number;
   p2?: number;
   logEvery?: number;
+  outDir: string;
 };
 
 export type TdTrainResult = {
@@ -35,14 +38,15 @@ export type TdTrainResult = {
 export async function trainValueNetTd(
   cfg: TdTrainConfig,
 ): Promise<{ model: ValueNetModel; result: TdTrainResult }> {
+  const logInterval = 100;
+  const windowSize = 100;
   const episodes = cfg.episodes;
   const seed = cfg.seed;
   const gamma = cfg.gamma ?? 0.99;
   const epsilon = cfg.epsilon ?? 0.1;
   const learningRate = cfg.learningRate ?? 0.001;
   const p2 = cfg.p2 ?? 0.9;
-  //const logEvery = cfg.logEvery ?? 1000;
-  const logEvery = 100;
+  const learningCurvePath = path.join(cfg.outDir, "learning-curve.csv");
 
   const rng = new Mulberry32(seed);
   const model = createValueNet({ learningRate });
@@ -50,7 +54,15 @@ export async function trainValueNetTd(
   const scores: number[] = [];
   const maxTiles: number[] = [];
   const losses: number[] = [];
+  const scoreWindow: number[] = [];
+  const maxTileWindow: number[] = [];
   let totalSteps = 0;
+
+  fs.writeFileSync(
+    learningCurvePath,
+    "episode,score,maxTile,steps,avgScoreWindow,avgMaxTileWindow\n",
+    "utf-8",
+  );
 
   for (let ep = 0; ep < episodes; ep++) {
     let state: GameState = newGame(rng);
@@ -78,12 +90,32 @@ export async function trainValueNetTd(
       totalSteps++;
     }
 
-    scores.push(state.score);
-    maxTiles.push(maxTile(state));
+    const score = state.score;
+    const episodeMaxTile = maxTile(state);
 
-    if ((ep + 1) % logEvery === 0 || ep === episodes - 1) {
+    scores.push(score);
+    maxTiles.push(episodeMaxTile);
+    pushWindow(scoreWindow, score, windowSize);
+    pushWindow(maxTileWindow, episodeMaxTile, windowSize);
+
+    const avgScoreWindow = mean(scoreWindow);
+    const avgMaxTileWindow = mean(maxTileWindow);
+
+    if ((ep + 1) % logInterval === 0 || ep === episodes - 1) {
+      fs.appendFileSync(
+        learningCurvePath,
+        [
+          ep + 1,
+          score,
+          episodeMaxTile,
+          steps,
+          avgScoreWindow.toFixed(4),
+          avgMaxTileWindow.toFixed(4),
+        ].join(",") + "\n",
+        "utf-8",
+      );
       console.log(
-        `[valuenet-train] episode=${ep + 1}/${episodes} score=${state.score} steps=${steps}`,
+        `[valuenet-train] ep=${ep + 1}/${episodes} score=${score} maxTile=${episodeMaxTile} avgScore100=${avgScoreWindow.toFixed(4)} avgMaxTile100=${avgMaxTileWindow.toFixed(4)}`,
       );
     }
   }
@@ -127,10 +159,14 @@ function mean(xs: number[]): number {
   return sum / xs.length;
 }
 
+function pushWindow(xs: number[], value: number, windowSize: number): void {
+  xs.push(value);
+  if (xs.length > windowSize) xs.shift();
+}
+
 function medianSorted(xs: number[]): number {
   const n = xs.length;
   if (n === 0) return 0;
   const mid = Math.floor(n / 2);
   return n % 2 === 1 ? xs[mid] : (xs[mid - 1] + xs[mid]) / 2;
 }
-

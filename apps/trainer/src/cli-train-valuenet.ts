@@ -66,6 +66,7 @@ async function main() {
     epsilon,
     learningRate,
     p2,
+    outDir,
   });
 
   await saveValueNet(model, outDir);
@@ -103,4 +104,3 @@ main().catch((err) => {
   console.error(err);
   process.exit(1);
 });
-
