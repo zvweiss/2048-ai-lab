@@ -544,7 +544,7 @@ Future LAB-005 will focus on **algorithmic improvements**.
 
 
 ## LAB-004.1 — Add Learning Curve Logging for ValueNet Training
-Status: TODO
+Status: DONE
 
 Objective:
 
@@ -670,3 +670,133 @@ Clarifications:
 Commit Message:
 
 LAB-004.1: Add learning curve logging for ValueNet training
+
+---
+
+## LAB-004.2 — Validate and Finalize Learning Curve Reporting Script
+Status: TODO
+
+Objective:
+
+Review and validate the existing learning curve reporting tool introduced
+after LAB-004.1.
+
+The repository already contains:
+
+scripts/report-learning-curve.mjs
+
+and the root command:
+
+npm run report:learning-curve
+
+This ticket ensures the implementation is correct, stable, and aligned
+with the learning-curve CSV format introduced in LAB-004.1.
+
+No new functionality is required beyond validation and small fixes.
+
+---
+
+Scope:
+
+1. Verify the script correctly reads:
+
+   artifacts/models/valuenet-v001/<run-name>/learning-curve.csv
+
+2. Confirm CSV parsing works for the format produced by LAB-004.1.
+
+3. Validate that the script prints a clear training summary.
+
+4. Ensure the script fails cleanly if the CSV file does not exist.
+
+5. Confirm the script does not introduce external dependencies.
+
+---
+
+Expected Console Output:
+
+The script should produce output similar to:
+
+=== LEARNING CURVE REPORT ===
+
+Run: run-001
+Rows: 200
+Episode range: 100 → 20000
+
+AvgScoreWindow:
+  first: 1622.4000
+  last:  4188.2300
+  delta: 2565.8300
+
+AvgMaxTileWindow:
+  first: 198.0800
+  last:  412.5600
+  delta: 214.4800
+
+Best observed episode score: 12844
+Best observed max tile: 1024
+
+---
+
+Non-Goals:
+
+This ticket must NOT:
+
+• modify training logic  
+• modify TD learning implementation  
+• change the CSV format introduced in LAB-004.1  
+• introduce plotting libraries  
+• introduce external dependencies  
+
+ASCII trend output is **NOT required for acceptance**.
+
+If present, it must not introduce additional dependencies.
+
+---
+
+Files Allowed to Modify:
+
+scripts/report-learning-curve.mjs
+
+package.json (only if command wiring requires adjustment)
+
+No other files should be modified.
+
+---
+
+Verification:
+
+Run:
+
+npm run report:learning-curve -- --run run-test
+
+Expected behavior:
+
+1. Script reads:
+
+   artifacts/models/valuenet-v001/run-test/learning-curve.csv
+
+2. Script prints a readable training summary.
+
+3. Script exits cleanly if the run directory does not exist.
+
+Example failure case:
+
+npm run report:learning-curve -- --run missing-run
+
+Expected result:
+
+Clear error message indicating the CSV file could not be found.
+
+---
+
+Deliverables:
+
+1. Verified working script
+2. Clean console output
+3. Clear error handling for missing files
+
+---
+
+Commit Message:
+
+LAB-004.2: Validate and finalize learning curve reporting script

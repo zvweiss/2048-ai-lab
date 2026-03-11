@@ -41,6 +41,7 @@
 
     "baselines:rebuild": "npm run baseline:random && npm run baseline:expectimax:v001 && npm run baseline:expectimax:d3 && npm run baseline:valuenet:v001",
 
-    "report:baselines": "node scripts/report-baselines.mjs"
+    "report:baselines": "node scripts/report-baselines.mjs",
+    "report:learning-curve": "node scripts/report-learning-curve.mjs"
   }
 }
