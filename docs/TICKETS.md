@@ -457,3 +457,205 @@ Runtime noticeably shorter than previous implementation.
 Commit Message:
 
 LAB-003.2: Batch ValueNet inference for ExpectedSpawn + tensor memory hygiene
+
+## LAB-004 — Experiment Instrumentation + Learning Curve Analysis
+Status: TODO
+
+Objective:
+
+Establish proper experiment instrumentation for neural training so that
+learning dynamics can be observed, compared, and reproduced across runs.
+
+LAB-003 introduced a functioning ValueNet TD(0) training pipeline with
+model export and evaluation. However, the current system only records
+final experiment statistics.
+
+LAB-004 adds the ability to observe how the neural agent improves during
+training by tracking learning curves and storing intermediate metrics.
+
+This enables:
+
+• detection of training plateaus  
+• comparison of hyperparameter choices  
+• reproducible experiment reporting  
+• preparation for larger RL experiments  
+
+The goal of LAB-004 is **observability**, not algorithmic improvements.
+
+No changes to the learning algorithm should occur during this phase.
+
+---
+
+Scope of LAB-004:
+
+1. Track learning metrics during training
+2. Persist learning curves alongside model artifacts
+3. Standardize experiment logging
+4. Enable post-training analysis of learning progress
+
+The first implementation task is LAB-004.1.
+
+---
+
+Constraints:
+
+• Do not change the ValueNet architecture  
+• Do not change the TD(0) update rule  
+• Do not change reward definition  
+• Do not modify evaluation logic  
+• Maintain deterministic behavior under fixed seed  
+• Preserve existing artifact directory structure  
+
+All instrumentation must be **additive**.
+
+---
+
+Artifacts produced by LAB-004:
+
+Each experiment run should contain:
+
+artifacts/models/valuenet-v001/<run-name>/
+
+Example contents:
+
+model.json  
+weights.bin  
+config.json  
+results.json  
+learning-curve.csv   ← new artifact
+
+---
+
+Relationship to other LABs:
+
+LAB-002  
+Benchmark heuristic baseline
+
+LAB-003  
+Introduce ValueNet training and evaluation
+
+LAB-004  
+Add instrumentation to understand training dynamics
+
+Future LAB-005 will focus on **algorithmic improvements**.
+
+
+---------------------------------------------------------------------
+
+
+## LAB-004.1 — Add Learning Curve Logging for ValueNet Training
+Status: TODO
+
+Objective:
+
+Record training metrics during ValueNet training in order to produce a
+learning curve describing the agent's improvement over time.
+
+Metrics should be written to a CSV file stored alongside the trained model.
+
+This allows visualization and comparison of training runs.
+
+---
+
+Required Output File:
+
+artifacts/models/valuenet-v001/<run-name>/learning-curve.csv
+
+---
+
+CSV Format:
+
+episode,score,maxTile,steps,avgScoreWindow,avgMaxTileWindow
+
+Where:
+
+episode           = training episode number  
+score             = final score of that episode  
+maxTile           = maximum tile reached in the episode  
+steps             = number of moves taken in that episode  
+avgScoreWindow    = rolling average score over recent episodes  
+avgMaxTileWindow  = rolling average maxTile over recent episodes  
+
+---
+
+Logging Policy:
+
+Training metrics should be written every N episodes.
+
+Default parameters:
+
+logInterval = 100
+windowSize  = 100
+
+Meaning:
+
+• metrics recorded every 100 episodes
+• rolling averages computed over the last 100 episodes
+
+These values should remain constants in the training script.
+
+---
+
+Console Output Update:
+
+Training console output should include rolling averages.
+
+Example:
+
+[valuenet-train] ep=100/20000 score=1840 maxTile=256 avgScore100=1622.4 avgMaxTile100=198.4
+
+---
+
+Files Allowed to Modify:
+
+apps/trainer/src/agents/valuenet/tdTrain.ts  
+apps/trainer/src/cli-train-valuenet.ts  
+
+No other files should be modified.
+
+---
+
+Implementation Requirements:
+
+1. Track per-episode statistics already available during training.
+
+2. Maintain rolling windows for:
+
+score  
+maxTile  
+
+3. Compute rolling averages.
+
+4. Append rows to learning-curve.csv during training.
+
+5. Ensure file creation happens inside the current run directory.
+
+6. Ensure CSV writing is deterministic and reproducible.
+
+---
+
+Verification:
+
+Run a short training job:
+
+npm run trainer:train:valuenet -- --episodes 500 --seed 1337 --out artifacts/models/valuenet-v001/run-test
+
+Expected results:
+
+1. File exists:
+
+artifacts/models/valuenet-v001/run-test/learning-curve.csv
+
+2. File contains multiple rows.
+
+3. First line is header:
+
+episode,score,maxTile,steps,avgScoreWindow,avgMaxTileWindow
+
+4. Console output includes rolling averages.
+
+---
+
+Commit Message:
+
+LAB-004.1: Add learning curve logging for ValueNet training
