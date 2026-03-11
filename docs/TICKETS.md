@@ -656,6 +656,58 @@ episode,score,maxTile,steps,avgScoreWindow,avgMaxTileWindow
 
 ---
 
+Clarifications for Implementation:
+
+The training run directory (`outDir`) currently exists only in
+`apps/trainer/src/cli-train-valuenet.ts`.
+
+To ensure the learning curve CSV is written in the correct location,
+`outDir` must be passed from the CLI into the training function.
+
+Implementation expectations:
+
+• Extend the TD training configuration to include `outDir`.
+
+• Pass `outDir` from:
+  `apps/trainer/src/cli-train-valuenet.ts`
+  into
+  `trainValueNetTd(...)`.
+
+• The learning curve file must be written from:
+
+  `apps/trainer/src/agents/valuenet/tdTrain.ts`
+
+• The output file path must be:
+
+  `artifacts/models/valuenet-v001/<run-name>/learning-curve.csv`
+
+---
+
+Logging Constants:
+
+Use fixed constants inside the trainer implementation:
+
+logInterval = 100  
+windowSize  = 100
+
+These constants should not be configurable in this version.
+
+---
+
+Numeric Serialization:
+
+Rolling averages must be serialized with stable fixed precision
+to ensure deterministic output formatting.
+
+Use:
+
+avgScoreWindow.toFixed(4)  
+avgMaxTileWindow.toFixed(4)
+
+This ensures reproducible CSV output across runs.
+
+---
+
 Commit Message:
 
 LAB-004.1: Add learning curve logging for ValueNet training
