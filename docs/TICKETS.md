@@ -959,3 +959,96 @@ Why this ticket is valuable
 
 This transforms the project from tracking only reward metrics into tracking policy structure, which is how reinforcement learning experiments are typically analyzed in research environments.
 
+# LAB-005 — Training Improvements
+
+## LAB-005.1 — Add epsilon decay to training loop
+
+Objective:
+Improve training stability by gradually reducing exploration during training.
+
+Description:
+Replace constant epsilon exploration with a decay schedule so the agent explores early but exploits learned policy later.
+
+Acceptance Criteria:
+Training runs with deterministic epsilon schedule and logs epsilon value.
+
+## LAB-005.2 — Log Epsilon During Training
+
+### Objective
+
+Add epsilon logging to the ValueNet training loop so that learning curves can be interpreted alongside the exploration schedule.
+
+Epsilon decay affects policy behavior significantly during reinforcement learning. Recording the epsilon value during training allows experiment results to be analyzed and reproduced more reliably.
+
+### Description
+
+Extend the training CSV output produced by the ValueNet training loop to include the current epsilon value used for action selection.
+
+The epsilon value should be recorded once per logging interval, alongside the existing learning-curve metrics.
+
+### Required Change
+
+Add a new column to the training CSV:
+
+epsilon
+
+The column should represent the exploration probability used at the moment the row is logged.
+
+Example CSV row after change:
+
+episode,score,maxTile,steps,avgScoreWindow,avgMaxTileWindow,maxTileInCorner,pMaxTileInCornerWindow,epsilon  
+100,1460,128,144,2616.4000,222.0800,1,0.37,0.1820
+
+### Files Allowed to Modify
+
+apps/trainer/src/agents/valuenet/tdTrain.ts
+
+No other files should be modified.
+
+### Acceptance Criteria
+
+After running a training experiment such as:
+
+npm run exp:valuenet:v001 -- --run run-test --episodes 1000 --games 50 --seed 1337
+
+The generated CSV must contain the new column:
+
+epsilon
+
+The values should reflect the decayed epsilon schedule used during training.
+
+### Priority
+
+Low
+
+This change improves experiment observability and reproducibility but does not alter the learning algorithm.
+
+## CODEX Assignment Notes
+
+Implement LAB-005.2 — Log epsilon during training.
+
+Scope must be limited to the ValueNet training loop.
+
+Modify only:
+
+apps/trainer/src/agents/valuenet/tdTrain.ts
+
+Do not modify:
+
+- training algorithm
+- epsilon decay logic
+- CLI scripts
+- evaluation pipeline
+- experiment runner
+
+Append a new CSV column named:
+
+epsilon
+
+The value should represent the exploration probability at the time the row is logged.
+
+The CSV formatting must remain deterministic and consistent with existing columns.
+
+Verification:
+
+Run a short experiment and confirm that the generated CSV contains the epsilon column and reasonable decaying values.
