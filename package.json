@@ -32,8 +32,16 @@
     "smoke:valuenet": "npm run train:valuenet:smoke && npm run eval:valuenet:smoke",
     
     "exp:valuenet:v001": "node scripts/run-experiment-valuenet-v001.mjs",
-    "exp:valuenet:v001:run-001": "node scripts/run-experiment-valuenet-v001.mjs --run run-001 --episodes 20000 --games 500 --seed 1337",
-    
+    "exp:valuenet:v001:test-check": "npm run exp:valuenet:v001 -- --run test-check --episodes 100 --games 10 --seed 1337",
+    "exp:valuenet:v001:run-001": "npm run exp:valuenet:v001 -- --run run-001 --episodes 20000 --games 500 --seed 1337",
+    "exp:valuenet:v001:run-002": "npm run exp:valuenet:v001 -- --run run-002 --episodes 20000 --games 500 --seed 1337",
+    "exp:valuenet:v001:run-003": "npm run exp:valuenet:v001 -- --run run-003 --episodes 20000 --games 500 --seed 1337",
+
+    "report:learning-curve": "node scripts/report-learning-curve.mjs",
+    "report:learning-curve-run-001": "npm run report:learning-curve -- --run run-001",
+    "report:learning-curve-run-002": "npm run report:learning-curve -- --run run-002",
+    "report:learning-curve-run-003": "npm run report:learning-curve -- --run run-003",
+
     "baseline:random": "npm run trainer:eval -- --agent random --games 500 --seed 1337 --out docs/baselines/random-v001.json",
     "baseline:expectimax:v001": "npm run trainer:eval -- --agent expectimax --games 200 --seed 1337 --depth 2 --p2 0.9 --out docs/baselines/expectimax-v001.json",
     "baseline:expectimax:d3": "npm run trainer:eval -- --agent expectimax --games 50 --seed 1337 --depth 3 --p2 0.9 --out docs/baselines/expectimax-d3-g50.json",
@@ -41,7 +49,6 @@
 
     "baselines:rebuild": "npm run baseline:random && npm run baseline:expectimax:v001 && npm run baseline:expectimax:d3 && npm run baseline:valuenet:v001",
 
-    "report:baselines": "node scripts/report-baselines.mjs",
-    "report:learning-curve": "node scripts/report-learning-curve.mjs"
+    "report:baselines": "node scripts/report-baselines.mjs"
   }
 }

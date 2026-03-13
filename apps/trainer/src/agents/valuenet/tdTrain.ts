@@ -56,11 +56,12 @@ export async function trainValueNetTd(
   const losses: number[] = [];
   const scoreWindow: number[] = [];
   const maxTileWindow: number[] = [];
+  const maxTileInCornerWindow: number[] = [];
   let totalSteps = 0;
 
   fs.writeFileSync(
     learningCurvePath,
-    "episode,score,maxTile,steps,avgScoreWindow,avgMaxTileWindow\n",
+    "episode,score,maxTile,steps,avgScoreWindow,avgMaxTileWindow,maxTileInCorner,pMaxTileInCornerWindow\n",
     "utf-8",
   );
 
@@ -92,14 +93,17 @@ export async function trainValueNetTd(
 
     const score = state.score;
     const episodeMaxTile = maxTile(state);
+    const episodeMaxTileInCorner = maxTileInCorner(state, episodeMaxTile);
 
     scores.push(score);
     maxTiles.push(episodeMaxTile);
     pushWindow(scoreWindow, score, windowSize);
     pushWindow(maxTileWindow, episodeMaxTile, windowSize);
+    pushWindow(maxTileInCornerWindow, episodeMaxTileInCorner, windowSize);
 
     const avgScoreWindow = mean(scoreWindow);
     const avgMaxTileWindow = mean(maxTileWindow);
+    const pMaxTileInCornerWindow = mean(maxTileInCornerWindow);
 
     if ((ep + 1) % logInterval === 0 || ep === episodes - 1) {
       fs.appendFileSync(
@@ -111,6 +115,8 @@ export async function trainValueNetTd(
           steps,
           avgScoreWindow.toFixed(4),
           avgMaxTileWindow.toFixed(4),
+          episodeMaxTileInCorner,
+          pMaxTileInCornerWindow.toFixed(4),
         ].join(",") + "\n",
         "utf-8",
       );
@@ -150,6 +156,11 @@ function maxTile(s: GameState): number {
   let m = 0;
   for (const row of s.grid) for (const v of row) if (v > m) m = v;
   return m;
+}
+
+function maxTileInCorner(s: GameState, episodeMaxTile: number): number {
+  const cornerValues = [s.grid[0][0], s.grid[0][3], s.grid[3][0], s.grid[3][3]];
+  return cornerValues.includes(episodeMaxTile) ? 1 : 0;
 }
 
 function mean(xs: number[]): number {

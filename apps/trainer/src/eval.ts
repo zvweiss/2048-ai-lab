@@ -50,7 +50,6 @@ export function evaluateAgent(
   const maxTileHistogram: Record<string, number> = {};
 
   for (let i = 0; i < games; i++) {
-    console.log("tick: " + i);
     const rng = mkRng((seedBase + i) >>> 0);
     const agent = agentFactory(rng);
 
@@ -58,7 +57,6 @@ export function evaluateAgent(
     let steps = 0;
 
     while (!state.isGameOver) {
-      console.log("agent tick: " + steps); //ZW
       const { dir } = agent.chooseMove({
         grid: state.grid,
         score: state.score,
@@ -91,8 +89,8 @@ export function evaluateAgent(
     maxTileHistogram[String(mTile)] =
       (maxTileHistogram[String(mTile)] ?? 0) + 1;
 
-    //life tick
-    if ((i + 1) % 2 === 0 || i === games - 1) {
+    //life tick ZW
+    if ((i + 1) % 100 === 0 || i === games - 1) {
       console.log(`[cli-eval] progress ${i + 1}/${games}`);
     }
   }

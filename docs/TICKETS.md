@@ -800,3 +800,162 @@ Deliverables:
 Commit Message:
 
 LAB-004.2: Validate and finalize learning curve reporting script
+
+## LAB-004.3 — Track Corner Ownership During Training
+
+Objective
+
+Add a structural metric to the training logs that measures whether the largest tile on the board ends in a corner.
+
+This metric helps detect when the neural agent begins to discover the corner strategy, which is a well-known emergent behavior in successful 2048 agents.
+
+Unlike score metrics alone, this structural metric reveals whether the policy is beginning to maintain stable board geometry.
+
+⸻
+
+Background
+
+Strong human and AI 2048 strategies usually keep the largest tile anchored in a corner.
+
+Example stable board:
+
+1024 512 256 128
+64 32 16 8
+4 2 0 0
+0 0 0 0
+
+This structure:
+	•	maximizes merge opportunities
+	•	reduces board chaos
+	•	preserves monotonic ordering
+
+Reinforcement learning agents often rediscover this structure naturally, without being explicitly programmed to do so.
+
+Tracking this metric during training helps identify when the agent begins to develop structured play.
+
+⸻
+
+Required Changes
+
+Extend the existing training CSV logging to include two additional columns:
+
+maxTileInCorner
+pMaxTileInCornerWindow
+
+⸻
+
+Column Definitions
+
+maxTileInCorner
+
+Binary value per episode.
+
+1 → at least one instance of the maximum tile is located in a corner
+0 → otherwise
+
+Corner positions:
+	•	(0,0)
+	•	(0,3)
+	•	(3,0)
+	•	(3,3)
+
+⸻
+
+pMaxTileInCornerWindow
+
+Rolling average over the same window used for:
+	•	avgScoreWindow
+	•	avgMaxTileWindow
+
+This value represents the fraction of recent episodes where the maximum tile ended in a corner.
+
+Example value:
+
+0.42
+
+Meaning:
+
+42% of recent games ended with the maximum tile in a corner.
+
+⸻
+
+CSV Format After Change
+
+Example row:
+
+episode,score,maxTile,steps,avgScoreWindow,avgMaxTileWindow,maxTileInCorner,pMaxTileInCornerWindow
+100,1460,128,144,2616.4000,222.0800,1,0.37
+
+⸻
+
+Implementation Notes
+
+Corner detection logic:
+
+Return 1 if the maximum tile is located in any of these positions:
+	•	grid[0][0]
+	•	grid[0][3]
+	•	grid[3][0]
+	•	grid[3][3]
+
+Otherwise return 0.
+
+The rolling window calculation should mirror the logic already used for:
+	•	avgScoreWindow
+	•	avgMaxTileWindow
+
+⸻
+
+Files Allowed to Modify
+
+apps/trainer/src/agents/valuenet/tdTrain.ts
+
+No other files should be modified.
+
+⸻
+
+Acceptance Criteria
+
+After running:
+
+npm run exp:valuenet:v001 – –run run-test –episodes 1000 –games 50 –seed 1337
+
+The generated CSV should include the new columns:
+	•	maxTileInCorner
+	•	pMaxTileInCornerWindow
+
+Example snippet:
+
+episode,score,maxTile,steps,avgScoreWindow,avgMaxTileWindow,maxTileInCorner,pMaxTileInCornerWindow
+100,1460,128,144,2616.4000,222.0800,1,0.34
+200,3336,256,272,2131.0800,183.3600,1,0.38
+300,1296,128,135,2117.8800,186.5600,0,0.33
+
+⸻
+
+Expected Research Insight
+
+Early training:
+
+pMaxTileInCornerWindow ≈ 0.25 – 0.40
+
+As training improves:
+
+pMaxTileInCornerWindow ≈ 0.60 – 0.80
+
+This increase usually precedes major improvements in score and max tile.
+
+⸻
+
+Priority
+
+Low
+
+This ticket improves training observability, not core learning behavior.
+
+⸻
+
+Why this ticket is valuable
+
+This transforms the project from tracking only reward metrics into tracking policy structure, which is how reinforcement learning experiments are typically analyzed in research environments.
+
