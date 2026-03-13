@@ -1,0 +1,68 @@
+{
+  "agent": "valuenet-v001",
+  "games": 10,
+  "seedBase": 1337,
+  "agentConfig": {
+    "model": "artifacts/models/valuenet-v001/test-check/model.json"
+  },
+  "meanScore": 3235.2,
+  "medianScore": 3320,
+  "stdScore": 1369.8918692120678,
+  "meanSteps": 263.3,
+  "medianSteps": 275.5,
+  "maxTileHistogram": {
+    "128": 3,
+    "256": 5,
+    "512": 2
+  },
+  "pAtLeast": {
+    "2048": 0,
+    "4096": 0,
+    "8192": 0,
+    "16384": 0,
+    "32768": 0,
+    "65536": 0
+  },
+  "samples": {
+    "minScore": 1388,
+    "maxScore": 5492,
+    "minMaxTile": 128,
+    "maxMaxTile": 512
+  },
+  "scores": [
+    1388,
+    1768,
+    1844,
+    2556,
+    3284,
+    3356,
+    3572,
+    4180,
+    4912,
+    5492
+  ],
+  "maxTiles": [
+    128,
+    128,
+    128,
+    256,
+    256,
+    256,
+    256,
+    256,
+    512,
+    512
+  ],
+  "steps": [
+    147,
+    178,
+    186,
+    219,
+    274,
+    277,
+    285,
+    342,
+    345,
+    380
+  ]
+}
