@@ -40,10 +40,12 @@ export async function trainValueNetTd(
 ): Promise<{ model: ValueNetModel; result: TdTrainResult }> {
   const logInterval = 100;
   const windowSize = 100;
+  const epsilonMin = 0.01;
+  const epsilonDecay = 0.9995;
   const episodes = cfg.episodes;
   const seed = cfg.seed;
   const gamma = cfg.gamma ?? 0.99;
-  const epsilon = cfg.epsilon ?? 0.1;
+  const initialEpsilon = cfg.epsilon ?? 0.1;
   const learningRate = cfg.learningRate ?? 0.001;
   const p2 = cfg.p2 ?? 0.9;
   const learningCurvePath = path.join(cfg.outDir, "learning-curve.csv");
@@ -58,6 +60,7 @@ export async function trainValueNetTd(
   const maxTileWindow: number[] = [];
   const maxTileInCornerWindow: number[] = [];
   let totalSteps = 0;
+  let epsilon = initialEpsilon;
 
   fs.writeFileSync(
     learningCurvePath,
@@ -125,6 +128,8 @@ export async function trainValueNetTd(
         `[valuenet-train] ep=${ep + 1}/${episodes} score=${score} maxTile=${episodeMaxTile} avgScore100=${avgScoreWindow.toFixed(4)} avgMaxTile100=${avgMaxTileWindow.toFixed(4)}`,
       );
     }
+
+    epsilon = Math.max(epsilonMin, epsilon * epsilonDecay);
   }
 
   const sortedScores = [...scores].sort((a, b) => a - b);
@@ -138,7 +143,7 @@ export async function trainValueNetTd(
       episodes,
       seed,
       gamma,
-      epsilon,
+      epsilon: initialEpsilon,
       learningRate,
       p2,
       totalSteps,

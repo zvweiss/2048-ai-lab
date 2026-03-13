@@ -1051,13 +1051,13 @@ This change improves experiment observability and reproducibility but does not a
 
 ---
 
-## LAB-005.2 Assignment Notes (for CODEX)
+### LAB-005.2 Assignment Notes (for CODEX)
 
 Implement LAB-005.2 — Log epsilon during training.
 
 The scope of this ticket is intentionally minimal and limited to **observability only**.
 
-### Allowed Changes
+#### Allowed Changes
 
 Modify only:
 
@@ -1067,7 +1067,7 @@ No other files should be modified.
 
 ---
 
-### Required Behavior
+#### Required Behavior
 
 Extend the training CSV logging to include a new column:
 
@@ -1077,7 +1077,7 @@ The value must represent the **epsilon currently used for action selection** at 
 
 ---
 
-### Important Constraint
+#### Important Constraint
 
 Do **not** introduce epsilon scheduling or epsilon decay in this ticket.
 
@@ -1087,7 +1087,7 @@ If epsilon scheduling is introduced in a future ticket, the same logging column 
 
 ---
 
-### Formatting
+#### Formatting
 
 Serialize epsilon with deterministic formatting using:
 
@@ -1095,7 +1095,7 @@ epsilon.toFixed(4)
 
 ---
 
-### Verification
+#### Verification
 
 Run a short training experiment such as:
 
@@ -1109,7 +1109,7 @@ With the current trainer implementation, the epsilon value may remain constant a
 
 ---
 
-### Out of Scope
+#### Out of Scope
 
 Do not modify:
 
@@ -1119,3 +1119,168 @@ Do not modify:
 - CLI scripts
 - evaluation pipeline
 - learning curve reporting scripts
+
+## LAB-005.3 — Introduce Epsilon Decay Schedule
+
+### Objective
+
+Introduce an epsilon decay schedule into the ValueNet training loop so that exploration gradually decreases during training.
+
+Early in training the agent should explore aggressively.
+Later in training the agent should exploit the learned policy more consistently.
+
+---
+
+### Description
+
+Modify the ValueNet training loop so that epsilon gradually decays from an initial value to a minimum value.
+
+Parameter ownership for this ticket:
+
+- `cfg.epsilon` is the initial epsilon
+- `epsilonMin` is a hardcoded constant inside `tdTrain.ts`
+- `epsilonDecay` is a hardcoded constant inside `tdTrain.ts`
+
+Use a simple exponential decay schedule:
+
+epsilon = Math.max(epsilonMin, epsilon * epsilonDecay)
+
+### Decay Semantics
+
+Apply epsilon decay exactly once after each completed episode.
+
+The epsilon value logged to the CSV must be the epsilon value that was used during the just-completed episode.
+
+This means:
+
+- episode 1 uses `cfg.epsilon`
+- epsilon is decayed after episode 1 completes
+- episode 2 uses the decayed epsilon
+- the CSV row for episode N records the epsilon used during episode N
+
+---
+
+### Required Changes
+
+Add epsilon scheduling to the training loop.
+
+Current behavior:
+
+epsilon is constant for the entire training run.
+
+New behavior:
+
+epsilon decays gradually over episodes.
+
+The epsilon column introduced in LAB-005.2 must continue to be written to the CSV and must now reflect the scheduled epsilon value used during each episode.
+
+---
+
+### Files Allowed to Modify
+
+apps/trainer/src/agents/valuenet/tdTrain.ts
+
+No other files should be modified.
+
+---
+
+### Acceptance Criteria
+
+Running an experiment such as:
+
+npm run exp:valuenet:v001 -- --run run-test --episodes 20000 --games 200 --seed 1337
+
+should produce a training CSV where:
+
+- the epsilon column exists
+- epsilon decreases over time
+- epsilon never goes below epsilonMin
+
+The CSV must log the epsilon value actually used during each logged episode.
+
+---
+
+### Priority
+
+Medium
+
+This change modifies training behavior and will likely have a visible impact on learning curves.
+
+### Fixed Constants
+
+Use the following hardcoded constants inside `tdTrain.ts`:
+
+- `epsilonMin = 0.01`
+- `epsilonDecay = 0.9995`
+
+Use `cfg.epsilon` as `initialEpsilon`.
+
+### Assignment Notes (for CODEX)
+
+Implement LAB-005.3 — Introduce epsilon decay schedule.
+
+#### Scope
+
+This ticket modifies the training algorithm by introducing an epsilon decay schedule.
+
+Modify only:
+
+apps/trainer/src/agents/valuenet/tdTrain.ts
+
+Do not change CLI scripts, experiment runners, evaluation code, or config plumbing.
+
+#### Parameter Ownership
+
+Use:
+
+- `cfg.epsilon` as `initialEpsilon`
+- hardcoded `epsilonMin` constant in `tdTrain.ts`
+- hardcoded `epsilonDecay` constant in `tdTrain.ts`
+
+#### Schedule Rule
+
+Use exponential decay:
+
+epsilon = Math.max(epsilonMin, epsilon * epsilonDecay)
+
+#### Required Semantics
+
+Apply decay exactly once after each completed episode.
+
+Log the epsilon value that was used during the just-completed episode.
+
+So:
+
+- episode 1 uses `cfg.epsilon`
+- decay happens after episode 1
+- episode 2 uses the decayed epsilon
+
+#### Fixed Constants
+
+Use:
+
+- `cfg.epsilon` as `initialEpsilon`
+- `epsilonMin = 0.01`
+- `epsilonDecay = 0.9995`
+
+#### Constraints
+
+Do not change:
+
+- network architecture
+- reward definition
+- TD update rule
+- CSV structure other than making the existing epsilon column reflect scheduled values
+
+#### Verification
+
+Run:
+
+npm run exp:valuenet:v001 -- --run run-test --episodes 5000 --games 100 --seed 1337
+
+Confirm:
+
+- epsilon column exists
+- epsilon decreases over time
+- epsilon never falls below epsilonMin
+- logged epsilon matches the epsilon actually used during each episode
