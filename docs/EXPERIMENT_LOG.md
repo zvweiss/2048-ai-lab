@@ -33,3 +33,4 @@ Record LAB runs here. Keep entries short and reproducible.
 2026-03-12T00:26:51.367Z | valuenet-v001 | run-002 | episodes=20000 | games=500 | seed=1337 | artifacts/models/valuenet-v001/run-002/model.json | docs/baselines/valuenet-v001-run-002.json
 2026-03-12T16:32:36.710Z | valuenet-v001 | run-003 | episodes=20000 | games=500 | seed=1337 | artifacts/models/valuenet-v001/run-003/model.json | docs/baselines/valuenet-v001-run-003.json
 2026-03-12T22:05:50.049Z | valuenet-v001 | run-test | episodes=1000 | games=50 | seed=1337 | artifacts/models/valuenet-v001/run-test/model.json | docs/baselines/valuenet-v001-run-test.json
+2026-03-13T19:24:02.335Z | valuenet-v001 | run-test | episodes=1000 | games=50 | seed=1337 | artifacts/models/valuenet-v001/run-test/model.json | docs/baselines/valuenet-v001-run-test.json

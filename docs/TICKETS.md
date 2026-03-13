@@ -976,15 +976,23 @@ Training runs with deterministic epsilon schedule and logs epsilon value.
 
 ### Objective
 
-Add epsilon logging to the ValueNet training loop so that learning curves can be interpreted alongside the exploration schedule.
+Add epsilon logging to the ValueNet training loop so that learning curves can be interpreted alongside the exploration setting used during training.
 
-Epsilon decay affects policy behavior significantly during reinforcement learning. Recording the epsilon value during training allows experiment results to be analyzed and reproduced more reliably.
+Recording epsilon during training makes experiment results easier to analyze and reproduce.
+
+---
 
 ### Description
 
 Extend the training CSV output produced by the ValueNet training loop to include the current epsilon value used for action selection.
 
-The epsilon value should be recorded once per logging interval, alongside the existing learning-curve metrics.
+The epsilon value should be recorded once per logging interval alongside the existing learning-curve metrics.
+
+This ticket **does not introduce epsilon scheduling or epsilon decay**. It only logs the epsilon value currently used by the trainer.
+
+With the current trainer implementation, the epsilon column may remain constant across the run unless epsilon scheduling is introduced in a future ticket.
+
+---
 
 ### Required Change
 
@@ -996,8 +1004,10 @@ The column should represent the exploration probability used at the moment the r
 
 Example CSV row after change:
 
-episode,score,maxTile,steps,avgScoreWindow,avgMaxTileWindow,maxTileInCorner,pMaxTileInCornerWindow,epsilon  
-100,1460,128,144,2616.4000,222.0800,1,0.37,0.1820
+episode,score,maxTile,steps,avgScoreWindow,avgMaxTileWindow,maxTileInCorner,pMaxTileInCornerWindow,epsilon
+100,1460,128,144,2616.4000,222.0800,1,0.3700,0.1000
+
+---
 
 ### Files Allowed to Modify
 
@@ -1005,17 +1015,33 @@ apps/trainer/src/agents/valuenet/tdTrain.ts
 
 No other files should be modified.
 
+---
+
+### Formatting Requirement
+
+The epsilon value must be serialized with stable fixed precision using:
+
+epsilon.toFixed(4)
+
+This keeps the CSV formatting deterministic and consistent with the existing rolling metric fields.
+
+---
+
 ### Acceptance Criteria
 
-After running a training experiment such as:
+After running:
 
 npm run exp:valuenet:v001 -- --run run-test --episodes 1000 --games 50 --seed 1337
 
-The generated CSV must contain the new column:
+The generated training CSV must contain a new column:
 
 epsilon
 
-The values should reflect the decayed epsilon schedule used during training.
+The values must reflect the epsilon value actually used during training.
+
+With the current trainer implementation, the epsilon value may remain constant across the run.
+
+---
 
 ### Priority
 
@@ -1023,32 +1049,73 @@ Low
 
 This change improves experiment observability and reproducibility but does not alter the learning algorithm.
 
-## CODEX Assignment Notes
+---
+
+## LAB-005.2 Assignment Notes (for CODEX)
 
 Implement LAB-005.2 — Log epsilon during training.
 
-Scope must be limited to the ValueNet training loop.
+The scope of this ticket is intentionally minimal and limited to **observability only**.
+
+### Allowed Changes
 
 Modify only:
 
 apps/trainer/src/agents/valuenet/tdTrain.ts
 
-Do not modify:
+No other files should be modified.
 
-- training algorithm
-- epsilon decay logic
-- CLI scripts
-- evaluation pipeline
-- experiment runner
+---
 
-Append a new CSV column named:
+### Required Behavior
+
+Extend the training CSV logging to include a new column:
 
 epsilon
 
-The value should represent the exploration probability at the time the row is logged.
+The value must represent the **epsilon currently used for action selection** at the moment the logging row is written.
 
-The CSV formatting must remain deterministic and consistent with existing columns.
+---
 
-Verification:
+### Important Constraint
 
-Run a short experiment and confirm that the generated CSV contains the epsilon column and reasonable decaying values.
+Do **not** introduce epsilon scheduling or epsilon decay in this ticket.
+
+The current trainer uses a fixed epsilon value. This ticket must simply log the value that is already being used.
+
+If epsilon scheduling is introduced in a future ticket, the same logging column will automatically reflect the updated schedule.
+
+---
+
+### Formatting
+
+Serialize epsilon with deterministic formatting using:
+
+epsilon.toFixed(4)
+
+---
+
+### Verification
+
+Run a short training experiment such as:
+
+npm run exp:valuenet:v001 -- --run run-test --episodes 1000 --games 50 --seed 1337
+
+Confirm that the generated CSV contains the new column:
+
+epsilon
+
+With the current trainer implementation, the epsilon value may remain constant across the run.
+
+---
+
+### Out of Scope
+
+Do not modify:
+
+- epsilon behavior
+- training algorithm
+- experiment runner
+- CLI scripts
+- evaluation pipeline
+- learning curve reporting scripts

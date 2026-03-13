@@ -61,7 +61,7 @@ export async function trainValueNetTd(
 
   fs.writeFileSync(
     learningCurvePath,
-    "episode,score,maxTile,steps,avgScoreWindow,avgMaxTileWindow,maxTileInCorner,pMaxTileInCornerWindow\n",
+    "episode,score,maxTile,steps,avgScoreWindow,avgMaxTileWindow,maxTileInCorner,pMaxTileInCornerWindow,epsilon\n",
     "utf-8",
   );
 
@@ -117,6 +117,7 @@ export async function trainValueNetTd(
           avgMaxTileWindow.toFixed(4),
           episodeMaxTileInCorner,
           pMaxTileInCornerWindow.toFixed(4),
+          epsilon.toFixed(4),
         ].join(",") + "\n",
         "utf-8",
       );
