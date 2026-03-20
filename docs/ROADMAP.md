@@ -1,4 +1,4 @@
-# Roadmap
+<!-- # Roadmap
 
 ## Tier 1 — Educational (local)
 - ValueNet predicts board value.
@@ -475,3 +475,316 @@ These tools will make long-term reinforcement learning progress easier to analyz
 	3.	The neural agent demonstrates measurable improvement across runs.
 	4.	The system begins approaching the performance of classical baselines.
 
+## LAB-005 — Controlled Exploration and Training Stability
+
+LAB-005 introduces an epsilon decay schedule into the ValueNet training loop.
+
+Earlier experiments used a fixed exploration rate. While this allows learning to occur, it mixes two conflicting goals:
+
+- exploration of new trajectories
+- exploitation of the learned value function
+
+The epsilon decay schedule gradually shifts the agent from exploration to exploitation over the course of training.
+
+Early episodes explore broadly, while later episodes increasingly rely on the learned value network.
+
+### Research Goal
+
+The goal of LAB-005 is to determine whether controlled exploration produces more stable learning and stronger policies.
+
+To evaluate this, experiments will be run with identical configurations but different random seeds.
+
+Because reinforcement learning is stochastic, small differences early in training can lead to significantly different policies.
+
+Running multiple seeds allows us to evaluate:
+
+- robustness of learning
+- variance across runs
+- sensitivity to early exploration trajectories
+
+### Planned Experiments
+
+The initial experiment plan consists of running the same configuration with three different seeds.
+
+Example runs:
+
+- run-005 (seed 1337)
+- run-006 (seed 2024)
+- run-007 (seed 9001)
+
+Each run will produce:
+
+- learning curves
+- corner ownership metrics
+- final evaluation statistics
+
+Comparing these runs allows us to determine whether the training process reliably converges toward strong policies, or whether results depend heavily on random initialization.
+
+### Expected Observations
+
+If the epsilon decay schedule improves learning stability, we expect to observe:
+
+- more consistent learning curves across seeds
+- higher final scores
+- increased corner ownership probability
+- more frequent appearance of large tiles (512, 1024, etc.)
+
+If results vary widely between seeds, this indicates that the current training setup remains sensitive to stochastic factors, and further algorithm improvements may be needed.
+ -->
+
+ # 2048 AI Lab — Roadmap
+
+This document describes the evolution of the project from basic experimentation toward a structured reinforcement learning research environment.
+
+The goal is not only to build a strong 2048-playing agent, but also to understand how learning systems develop strategy in stochastic environments.
+
+---
+
+## LAB-003 — ValueNet Training Pipeline
+
+LAB-003 introduces a neural network–based value function for evaluating board states.
+
+### Objectives
+
+- Implement a ValueNet model
+- Train using TD(0)
+- Integrate model inference into gameplay
+- Export trained models
+- Evaluate performance
+
+### Outcome
+
+At the end of LAB-003, the system supports:
+
+- training a value network
+- running evaluation games
+- saving and loading models
+- reproducible experiment runs
+
+However, observability is still limited. We can measure performance, but not understand *how* the agent learns.
+
+---
+
+## LAB-004 — Observability and Learning Curves
+
+LAB-004 introduces instrumentation to make learning behavior visible.
+
+### Objectives
+
+- log training metrics to CSV
+- track rolling averages
+- visualize learning curves
+- introduce structural metrics (corner ownership)
+
+### Key Metrics
+
+- `AvgScoreWindow`
+- `AvgMaxTileWindow`
+- `maxTileInCorner`
+- `pMaxTileInCornerWindow`
+
+### Research Motivation
+
+Performance alone does not reveal strategy.
+
+Two agents with similar scores may behave very differently.
+
+To understand learning, we must observe:
+
+- how performance evolves
+- whether structure emerges
+- how policies stabilize
+
+### Key Insight
+
+The **corner ownership metric** provides a proxy for strategic understanding.
+
+Strong 2048 play is characterized by:
+
+- keeping the largest tile in a corner
+- building monotonic rows
+- merging toward that corner
+
+Tracking this metric allows us to detect whether the agent discovers this structure.
+
+### Outcome
+
+LAB-004 transforms the project from a training system into an **observable learning system**.
+
+We can now track:
+
+- learning progress
+- policy structure
+- training stability
+
+---
+
+## LAB-005 — Controlled Exploration and Training Stability
+
+LAB-005 introduces an epsilon decay schedule into the ValueNet training loop.
+
+Earlier experiments used a fixed exploration rate. While this allows learning to occur, it mixes two conflicting goals:
+
+- exploration of new trajectories
+- exploitation of the learned value function
+
+The epsilon decay schedule gradually shifts the agent from exploration to exploitation over the course of training.
+
+Early episodes explore broadly, while later episodes increasingly rely on the learned value network.
+
+---
+
+### Research Goal
+
+The goal of LAB-005 is to determine whether controlled exploration produces more stable learning and stronger policies.
+
+To evaluate this, experiments will be run with identical configurations but different random seeds.
+
+Because reinforcement learning is stochastic, small differences early in training can lead to significantly different policies.
+
+Running multiple seeds allows us to evaluate:
+
+- robustness of learning
+- variance across runs
+- sensitivity to early exploration trajectories
+
+---
+
+### The Three-Seed Experiment
+
+A common methodology in reinforcement learning research is to repeat the same experiment multiple times with different random seeds.
+
+For LAB-005 the experiment plan is:
+
+- run-005 (seed 1337)
+- run-006 (seed 2024)
+- run-007 (seed 9001)
+
+Each run uses identical parameters and training settings.
+
+The only difference is the random seed controlling:
+
+- environment randomness
+- exploration choices
+- initial stochastic trajectories
+
+Each run produces:
+
+- learning curves
+- corner ownership metrics
+- evaluation results
+
+---
+
+### Why Multiple Seeds Matter
+
+In reinforcement learning, early stochastic events can strongly influence the long-term learning trajectory.
+
+Two identical training runs may produce very different outcomes depending on what the agent experiences during the early episodes.
+
+This phenomenon is sometimes referred to as **seed sensitivity**.
+
+A single run therefore cannot reliably characterize the performance of a learning algorithm.
+
+Running multiple seeds allows us to distinguish between:
+
+- a consistently strong learning method
+- a fragile method that succeeds only under favorable randomness
+
+---
+
+### Expected Observations
+
+Typical outcomes across seeds may look like:
+
+| Run     | Final Avg Score | Best Tile | Corner Ownership |
+| ------- | --------------- | --------- | ---------------- |
+| run-005 | moderate        | 512       | medium           |
+| run-006 | strong          | 1024      | high             |
+| run-007 | weak            | 256       | low              |
+
+Even though all runs use the same code and hyperparameters.
+
+This variation reflects the stochastic nature of reinforcement learning.
+
+---
+
+### Strategy Emergence and Phase Transitions
+
+An especially interesting phenomenon in 2048 training is the sudden emergence of the **corner strategy**.
+
+The corner strategy keeps the largest tile in a corner and builds monotonic rows toward that corner.
+
+Human players discovered this strategy through experience.
+
+Reinforcement learning agents often rediscover the same structure.
+
+This usually appears as a sudden transition in two metrics:
+
+- `AvgScoreWindow`
+- `pMaxTileInCornerWindow`
+
+Example learning behavior:
+
+Score curve
+
+low → slowly rising → sudden jump → stable improvement
+
+Corner ownership curve
+
+near zero → gradual increase → sharp transition → high probability
+
+When this transition occurs, the agent has typically discovered the structural strategy underlying strong 2048 play.
+
+---
+
+### What This Experiment Will Reveal
+
+The three-seed experiment allows us to determine whether the current training setup reliably discovers this strategy.
+
+Possible outcomes include:
+
+1. Consistent discovery across seeds  
+   The learning curves and corner metrics converge similarly across runs.  
+   This indicates the algorithm is robust.
+
+2. Partial discovery  
+   One or two runs discover the corner strategy while others do not.  
+   This suggests the algorithm is promising but still sensitive to stochastic effects.
+
+3. No discovery  
+   All runs remain weak and corner ownership remains low.  
+   This indicates further improvements are needed.
+
+---
+
+### Long-Term Research Direction
+
+The ultimate goal of these experiments is to understand how reinforcement learning agents discover structured strategies in stochastic environments.
+
+2048 serves as a compact experimental environment in which:
+
+- stochastic dynamics
+- value function learning
+- policy emergence
+
+can be studied in a controlled setting.
+
+The instrumentation introduced in LAB-004 and LAB-005 provides the observability needed to track how these behaviors emerge during training.
+
+---
+
+## Summary
+
+The project has evolved through three major stages:
+
+LAB-003  
+→ neural network training pipeline
+
+LAB-004  
+→ observability and learning analysis
+
+LAB-005  
+→ controlled exploration and experimental rigor
+
+Together, these stages form the foundation of a reproducible reinforcement learning research environment.

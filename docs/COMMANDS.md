@@ -24,3 +24,9 @@
 ## Notes
 - Evaluation outputs are saved under `artifacts/eval/` (gitignored).
 - Public deployment remains static (Angular only).
+
+## report:experiment-summary
+npm run report:experiment-summary
+npm run report:experiment-summary:default
+npm run report:experiment-summary -- --runs run-005,run-006,run-007
+npm run report:experiment-summary -- --runs run-005,run-006,run-007 --sortBy meanScore
